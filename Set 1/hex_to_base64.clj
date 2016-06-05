@@ -71,4 +71,4 @@
 
 
 (defn -main []
-  (println (= out (encode inp))))
+  (assert (= out (encode inp))))
