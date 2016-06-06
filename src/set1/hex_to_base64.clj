@@ -1,4 +1,5 @@
-(ns set1.hex-to-base64)
+(ns set1.hex-to-base64
+  (:require [util.conv :refer [hex-to-int]]))
 
 
 ;; CHALLENGE 1
@@ -11,16 +12,6 @@
 
 ;; SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t
 
-
-
-(def inp "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
-
-(def out "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t")
-
-
-(def hex-to-nibble (into {} (map #(-> [%1 %2])
-                                 '(\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \a \b \c \d \e \f)
-                                 (range 16))))
 
 (defn byte-to-base64
   [num]
@@ -59,7 +50,7 @@
 (defn pad-input
   [inp]
   (map (fn [bits] (reduce #(+ (bit-shift-left %1 4) %2) 0 bits))
-       (partition HEX_PER_BLOCK HEX_PER_BLOCK 0 (map hex-to-nibble (seq inp)))))
+       (partition HEX_PER_BLOCK HEX_PER_BLOCK 0 (map hex-to-int (seq inp)))))
 
 (defn encode
   [data]
@@ -68,7 +59,3 @@
     (if (not (empty? rst))
         (recur rst (concat (reverse (encode-block f)) acc))
         (clojure.string/join (reverse (concat (reverse (encode-with-padding f)) acc))))))
-
-
-(defn -main []
-  (assert (= out (encode inp))))
