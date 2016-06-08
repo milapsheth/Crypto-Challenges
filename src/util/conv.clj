@@ -1,4 +1,5 @@
-(ns util.conv)
+(ns util.conv
+  (:require [clojure.string :as s]))
 
 
 (defn hex-to-int
@@ -12,14 +13,25 @@
   [c]
   (char (+ c (if (< c 10) 48 87))))
 
+(defn sqr [n] (* n n))
+
+(def MAX-INT (bit-shift-left 1 48))
+
 (defn hexstr-to-str
   [data]
-  (map #(char (+ (bit-shift-left (hex-to-int (first %)) 4) (hex-to-int (second %))))
-       (partition 2 2 0 (seq data))))
+  (mapv #(char (+ (bit-shift-left (hex-to-int (first %)) 4) (hex-to-int (second %))))
+        (partition 2 2 0 (seq data))))
+
+(defn down-case
+  [c]
+  (let [ch (int c)]
+    (if (and (< ch 91) (> ch 64))
+      (char (+ ch 32))
+      c)))
 
 (defn str-to-lst
   [data]
-  (map hex-to-int (seq data)))
+  (mapv hex-to-int (seq data)))
 
 (defn lst-to-str [data] (clojure.string/join (map int-to-hex data)))
 
