@@ -9,8 +9,8 @@ My attempt at completing [the crypto challenges](http://cryptopals.com/) and pla
    - [x] Challenge 2
    - [x] Challenge 3
    - [x] Challenge 4
-   - [ ] Challenge 5
-   - [ ] Challenge 6
+   - [x] Challenge 5
+   - [x] Challenge 6
    - [ ] Challenge 7
    - [ ] Challenge 8
 * Set 2

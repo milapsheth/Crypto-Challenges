@@ -29,7 +29,7 @@
 
 (def UNCOMMON-CHAR-WEIGHT -20)
 
-;; Score = Σ (ch-normal-freq - (char-count * 1000 / doc-length))
+;; Score = Sum all (ch-normal-freq - (char-count * 1000 / doc-length))
 ;; TODO: Make 1000 into variable percent based on doc-length
 (defn score-match
   "Score an english text based on how close 
@@ -58,8 +58,8 @@
 
     (if (empty? nums)
       (clojure.string/join matched-data)
-      (let [match (rotate-by-char data (first nums))
-             new-score (score-match match)]
+      (let [match (rotate-byte-array data (first nums))
+            new-score (score-match match)]
         (recur (if (< new-score score) new-score score)
                (if (< new-score score) match matched-data)
                (rest nums))))))
@@ -71,7 +71,7 @@
   output the data with best score"
   [data]
   (def char-count (reduce #(update %1 %2 (fnil inc 0)) {} data))
-
+  ;;(println char-count)
   (let [max-char (key (apply max-key val char-count))]
     (loop [freq-lst (take 10 char-freq)
            best-score MAX-INT
@@ -79,7 +79,6 @@
 
       (if (empty? freq-lst)
         best-match
-
         (let [cipher-key (bit-xor max-char (int (first freq-lst)))
               match (rotate-byte-array data cipher-key)
               score (score-match match)]
