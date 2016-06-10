@@ -36,15 +36,15 @@
   the letter distribution is to that commonly found in text"
   [match]
   (let [len (count match)
-        char-count (reduce #(update %1 %2 (fnil inc 0)) {} match)]
+        char-count (reduce #(update %1 (char %2) (fnil inc 0)) {} match)]
     (reduce #(+ %1 (sqr (- (get char-freq-map (down-case (key %2)) UNCOMMON-CHAR-WEIGHT)
                            (/ (* 1000 (val %2)) len))))
             0 char-count)))
 
 
-(defn rotate-by-char
+(defn rotate-byte-array
   [byte-lst byte]
-  (map #(char (bit-xor % byte)) byte-lst))
+  (map #(bit-xor % byte) byte-lst))
 
 
 ;; Input hex string "1b4f36a" -> decrypted ascii
@@ -65,25 +65,28 @@
                (rest nums))))))
 
 
-(defn decrypt
+(defn decrypt-caesar
   "Get most frequent character and then assuming
   it is one of the most frequent character, 
   output the data with best score"
-  [cdata]
-  (def data (map int (hexstr-to-str cdata)))
+  [data]
   (def char-count (reduce #(update %1 %2 (fnil inc 0)) {} data))
 
   (let [max-char (key (apply max-key val char-count))]
-    (loop [freq-lst (take 12 char-freq)
+    (loop [freq-lst (take 10 char-freq)
            best-score MAX-INT
            best-match data]
 
       (if (empty? freq-lst)
-        (clojure.string/join best-match)
+        best-match
 
         (let [cipher-key (bit-xor max-char (int (first freq-lst)))
-              match (rotate-by-char data cipher-key)
+              match (rotate-byte-array data cipher-key)
               score (score-match match)]
           (recur (rest freq-lst)
                  (if (< score best-score) score best-score)
                  (if (< score best-score) match best-match)))))))
+
+(defn decrypt
+  [data]
+  (clojure.string/join (map char (decrypt-caesar (map int (hexstr-to-str data))))))

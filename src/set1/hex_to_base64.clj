@@ -27,9 +27,10 @@
 (def HEX_PER_BLOCK (/ BLOCK_SIZE 4))
 
 (defn chop-block
-  ([block] (chop-block block nil))
-  ([block acc] (if (zero? block) acc (recur (bit-shift-right block 6)
-                                            (cons (bit-and block 63) acc)))))
+  ([block] (chop-block block 4 nil))
+  ([block n acc] (if (zero? n) acc (recur (bit-shift-right block 6)
+                                          (dec n)
+                                          (cons (bit-and block 63) acc)))))
 
 (defn encode-block
   [block]
