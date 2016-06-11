@@ -70,9 +70,11 @@
              (dec n)
              (cons (bit-and block 255) acc)))))
 
+
 (defn decode-base64-block
   [block]
   (transform-block block))
+
 
 (defn decode-base64-with-padding
   [[w x y z]]
@@ -82,6 +84,7 @@
                     (+ (bit-and 255 (bit-shift-left x 4)) (bit-shift-right y 2)))
     :else (transform-block [w x y z])))
 
+
 (defn base64-to-byte'
   "Convert base64 string to byte array"
   [data]
@@ -90,3 +93,26 @@
     (if (empty? rst)
       (reverse (concat (reverse (decode-base64-with-padding block)) acc))
       (recur rst (concat (reverse (decode-base64-block block)) acc)))))
+
+;; Custom list processors
+(defn option-map'
+  [f l]
+  (loop [lsts l
+         acc '()]
+    (if (empty? lsts)
+      (reverse acc)
+      (recur (rest lsts) (let [val (f (first lsts))]
+                           (if (nil? val)
+                             acc
+                             (cons val acc)))))))
+
+(defn interleave'
+  "Interleave implmentation that works
+  for different list sizes"
+  [v & vs]
+  (let [lsts (cons v vs)
+        fst (option-map' #(first %) lsts)]
+    (if (empty? fst)
+      nil
+      (lazy-cat fst
+                (apply interleave' (map rest lsts))))))

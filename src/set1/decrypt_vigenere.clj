@@ -41,30 +41,18 @@
 
 
 (defn decrypt-vigenere
-  [data]
-  (def key-sizes (get-good-key-sizes data))
-  ;; (println key-sizes)
+  [cipher]
+  (def key-sizes (get-good-key-sizes cipher))
   (loop [keys (take 4 (sort-by second < key-sizes))
          acc '()]
     (if (empty? keys)
-      (second (reduce #(let [score (x/score-match %2)]
-                         (if (< score (%1 0)) [score %2] %))
+      (second (reduce #(let [text-score (x/score-match %2)]
+                         (if (< text-score (%1 0)) [text-score %2] %))
                       [u/MAX-INT nil] acc))
-      (let [[key-len score] (first keys)
-            cipher data]
-        ;; (println score)
+      (let [[key-len cipher-score] (first keys)]
         (recur (rest keys)
-               (cons (apply interleave (map #(x/decrypt-caesar
-                                              (take-nth key-len (drop % cipher))) #_ (map (fn [block] (nth block % nil)) cipher)
-                                            (range key-len)))
+               (cons (apply interleave' (map #(x/decrypt-caesar
+                                               (take-nth key-len (drop % cipher)))
+                                             (range key-len)))
                      acc))))))
 
-
-(defn read-data []
-  (with-open [rdr (io/reader (io/file (io/resource "6.txt")))]
-    (let [data (u/base64-to-byte' (apply concat (line-seq rdr)))]
-      #_(decrypt-vigenere data) (s/join (map char (decrypt-vigenere data))) #_
-      (map #(s/join (map char %)) (decrypt-vigenere data)))))
-
-;(decrypt-vigenere (u/base64-to-byte' "aRedtBf6d+4="))
-;(read-data)
