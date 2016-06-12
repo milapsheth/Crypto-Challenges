@@ -1,5 +1,7 @@
 # Crypto-Challenges
 
+[![Build Status](https://travis-ci.org/milapsheth/Crypto-Challenges.svg?branch=master)](https://travis-ci.org/milapsheth/Crypto-Challenges)
+
 My attempt at completing [the crypto challenges](http://cryptopals.com/) and planning to learn Clojure on the side.
 
 ## Completed challenges
