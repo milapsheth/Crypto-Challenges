@@ -5,6 +5,8 @@
             [clojure.java.io :as io]))
 
 
+(def MAX-KEY-LEN 40)
+
 (defn count-set-bits [n]
   (loop [n n
          acc 0]
@@ -25,10 +27,11 @@
       0 (range 4))
      (* 4 key-size)))
 
+
 (defn get-good-key-sizes
   [data]
   (def len (quot (count data) 10))
-  (loop [key-sizes (range 2 40)
+  (loop [key-sizes (range 2 (min (inc MAX-KEY-LEN) len))
          best-key '()
          best-distance u/MAX-INT]
     (if (or (empty? key-sizes) (> (first key-sizes) len))
@@ -36,7 +39,7 @@
       (let [key-size (first key-sizes)
             edit-distance (calc-edit-distance data key-size)]
         (recur (rest key-sizes)
-               (cons [key-size edit-distance] best-key) #_(if (< edit-distance best-distance) key-size best-key)
+               (cons [key-size edit-distance] best-key)
                (if (< edit-distance best-distance) edit-distance best-distance))))))
 
 
@@ -51,7 +54,7 @@
                       [u/MAX-INT nil] acc))
       (let [[key-len cipher-score] (first keys)]
         (recur (rest keys)
-               (cons (apply interleave' (map #(x/decrypt-caesar
+               (cons (apply u/interleave' (map #(x/decrypt-caesar
                                                (take-nth key-len (drop % cipher)))
                                              (range key-len)))
                      acc))))))

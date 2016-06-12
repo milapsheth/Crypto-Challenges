@@ -22,7 +22,8 @@
                     \w 23, \f 22, \g 20, \y 19, \p 18, \b 15, \v 10,
                     \k 8, \j 2, \x 1, \q 1, \z 1,
                     \space 200, \. 32, \, 31, \; 3, \: 4, \! 3, \? 6,
-                    \' 24, \newline 35})
+                    \' 24, \newline 35, \( 1, \) 1, \[ 1, \] 1,
+                    \0 3, \1 2, \2 2, \3 1, \4 1, \5 2, \6 1, \7 1, \8 1, \9 1})
 
 (def char-freq (map key (sort-by val > char-freq-map)))
 (def char-freq-count (map val (sort-by val > char-freq-map)))
@@ -42,9 +43,13 @@
             0 char-count)))
 
 
-(defn rotate-byte-array
-  [byte-lst byte]
-  (map #(bit-xor % byte) byte-lst))
+(defn encrypt-caesar
+  "Encrypt plaintext using given key as a caesar cipher
+  
+  plaintext: byte[]
+  cipher-key: byte"
+  [plaintext cipher-key]
+  (map #(bit-xor % cipher-key) plaintext))
 
 
 ;; Input hex string "1b4f36a" -> decrypted ascii
@@ -58,7 +63,7 @@
 
     (if (empty? nums)
       (clojure.string/join matched-data)
-      (let [match (rotate-byte-array data (first nums))
+      (let [match (encrypt-caesar data (first nums))
             new-score (score-match match)]
         (recur (if (< new-score score) new-score score)
                (if (< new-score score) match matched-data)
@@ -71,7 +76,7 @@
   output the data with best score"
   [data]
   (def char-count (reduce #(update %1 %2 (fnil inc 0)) {} data))
-  ;;(println char-count)
+
   (let [max-char (key (apply max-key val char-count))]
     (loop [freq-lst (take 10 char-freq)
            best-score MAX-INT
@@ -80,12 +85,8 @@
       (if (empty? freq-lst)
         best-match
         (let [cipher-key (bit-xor max-char (int (first freq-lst)))
-              match (rotate-byte-array data cipher-key)
+              match (encrypt-caesar data cipher-key)
               score (score-match match)]
           (recur (rest freq-lst)
                  (if (< score best-score) score best-score)
                  (if (< score best-score) match best-match)))))))
-
-(defn decrypt
-  [data]
-  (clojure.string/join (map char (decrypt-caesar (map int (hexstr-to-str data))))))

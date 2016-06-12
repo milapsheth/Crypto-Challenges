@@ -5,6 +5,11 @@
             [clojure.java.io :as io]))
 
 
+(defn decrypt
+  [data]
+  (clojure.string/join (map char (x/decrypt-caesar (map int (hexstr-to-str data))))))
+
+
 (defn detect-encrypted
   "Detect encrypted file"
   [ciphertexts]
@@ -15,7 +20,7 @@
     (if (empty? lines)
       (s/join decrypted-match)
       (let [data (hexstr-to-str (first lines))
-            new-match (x/decrypt (first lines))
+            new-match (decrypt (first lines))
             new-score (x/score-match (seq new-match))]
         (recur (rest lines)
                (if (< new-score score) new-score score)
