@@ -41,15 +41,15 @@
 (defn sub-bytes  "Replace a byte with the corresponding
   value at index in the Rijndael S-box"
   [state inv?]
-  (if inv?
-    (map #(map constants/inverse-s-box %) state)
-    (map #(map constants/s-box %) state)))
+  (if-not inv?
+    (map #(map constants/s-box %) state)
+    (map #(map constants/inverse-s-box %) state)))
 
 ;; Shift rows step
 (defn shift-rows
   "Rotate state rows"
   [state inv?]
-  (let [idx (if inv? (fn [i] (- 4 i)) (fn [i] i))]
+  (let [idx (if-not inv? (fn [i] i) (fn [i] (- 4 i)))]
     (map-indexed #(concat (drop (idx %1) %2) (take (idx %1) %2))
                  (partition 4 4 state))))
 
@@ -65,15 +65,22 @@
       ans
       (let [high-bit-set (bit-and a 0x80)]
         (recur (dec i)
-               (if-not (zero? (bit-and b 1)) (bit-xor p a) p)
+               (if-not (zero? (bit-and b 1)) (bit-xor ans a) ans)
                (let [new-a (bit-and (bit-shift-left a 1) 0xFF)]
                  (if-not (zero? high-bit-set) (bit-and new-a 0x1b) new-a))
                (bit-shift-right b 1))))))
 
+(defn mix-column
+  "Mix columns"
+  [column inv?]
+  (def mult (if-not inv? [2, 1, 1, 3] [14, 9, 13, 11]))
+  (map (fn [order] (u/reduce' #(bit-xor %1 (column %2) %3)
+                              0 order mult))
+       [[0 3 2 1], [1 0 3 2], [2 1 0 3], [3 2 1 0]]))
 
 (defn mix-columns
-  "Mix columns"
-  [state inv?])
+  [state inv?]
+  (apply interleave (map #(mix-column % inv?) (apply map vector state))))
 
 ;; Add round key step
 (defn add-round-key
