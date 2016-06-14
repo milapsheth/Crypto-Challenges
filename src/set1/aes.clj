@@ -37,6 +37,12 @@
 
 ;; AES functions
 
+;; Expand key
+(defn expand-key
+  "Key expansion function"
+  [key initial-size expanded-key-size]
+  )
+
 ;; Sub bytes step
 (defn sub-bytes  "Replace a byte with the corresponding
   value at index in the Rijndael S-box"
@@ -88,3 +94,24 @@
   [state cipher-key]
   (map #(map (fn [arg] (bit-xor (first arg) (second arg))) %) state cipher-key))
 
+
+;; Encryption round
+(defn aes-encrypt-round
+  "One round of AES encryption"
+  [state round-key]
+  (-> state
+      (sub-bytes false)
+      (shift-rows false)
+      (mix-columns false)
+      (add-round-key round-key)))
+
+
+;; Decryption round
+(defn aes-decrypt-round
+  "One round of AES encryption"
+  [state round-key]
+  (-> state
+      (shift-rows true)
+      (sub-bytes true)
+      (add-round-key round-key)
+      (mix-columns true)))
