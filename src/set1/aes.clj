@@ -37,11 +37,33 @@
 
 ;; AES functions
 
+;; Key schedule core
+(defn key-schedule-core
+  [word iter]
+  (-> (conj (rest word) (first word))
+      (map constants/s-box)
+      ((fn [w] (cons (bit-xor (first w) (constants/rcon iter)) (rest w))))))
+
 ;; Expand key
 (defn expand-key
-  "Key expansion function"
+  "Key expansion function
+  Expands an 128,192,256 key into an 176,208,240 bytes key"
   [key initial-size expanded-key-size]
-  )
+  (loop [current-size initial-size
+         rcon-iter 1
+         expanded-key (vec key)]
+    (if (>= current-size expanded-key-size)
+      expanded-key
+      (recur (+ current-size 4)
+             (if (zero? (rem current-size initial-size))
+               (inc rcon-iter)
+               rcon-iter)
+             (->> (subvec expanded-key (- current-size 4) current-size)
+                  ((fn [k] (if (and (= initial-size 32) (= (rem current-size initial-size) 16))
+                            (map constants/s-box k) ;; For 256-bit keys perform another s-box transform
+                            k)))
+                  (map #(bit-xor %1 %2) (subvec expanded-key (- current-size initial-size))) ;; XOR generated 4 bytes with previous 4 bytes to expand key
+                  (into expanded-key))))))
 
 ;; Sub bytes step
 (defn sub-bytes  "Replace a byte with the corresponding
