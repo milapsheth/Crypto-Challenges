@@ -4,6 +4,7 @@
 
 
 ;; AES algorithm description
+;; Translated to clojure from http://anh.cs.luc.edu/331/code/aes.py
 
 ;; Key size: num_rounds => 128: 10, 192: 12, 256: 14
 
@@ -65,6 +66,7 @@
                   (map #(bit-xor %1 %2) (subvec expanded-key (- current-size initial-size))) ;; XOR generated 4 bytes with previous 4 bytes to expand key
                   (into expanded-key))))))
 
+
 ;; Sub bytes step
 (defn sub-bytes  "Replace a byte with the corresponding
   value at index in the Rijndael S-box"
@@ -79,7 +81,7 @@
   [state inv?]
   (let [idx (if-not inv? (fn [i] i) (fn [i] (- 4 i)))]
     (map-indexed #(concat (drop (idx %1) %2) (take (idx %1) %2))
-                 (partition 4 4 state))))
+                 state)))
 
 ;; Mix columns step
 
@@ -101,6 +103,7 @@
 (defn mix-column
   "Mix columns"
   [column inv?]
+  (println column)
   (def mult (if-not inv? [2, 1, 1, 3] [14, 9, 13, 11]))
   (map (fn [order] (u/reduce' #(bit-xor %1 (column %2) %3)
                               0 order mult))
@@ -108,19 +111,30 @@
 
 (defn mix-columns
   [state inv?]
+  (println state)
   (apply interleave (map #(mix-column % inv?) (apply map vector state))))
 
 ;; Add round key step
 (defn add-round-key
   "Add round key step"
   [state cipher-key]
-  (map #(map (fn [arg] (bit-xor (first arg) (second arg))) %) state cipher-key))
+  (map #(map (fn [p k] (bit-xor p k)) %1 %2) state cipher-key))
 
+;; Create round key
+(defn create-round-key
+  "Create a round key.
+  Creates a round key from the given expanded key and the
+  position within the expanded key.
+  "
+  [expanded-key round-key-pointer]
+  (apply mapv vector (partition 4 4 (subvec expanded-key round-key-pointer (+ round-key-pointer 16)))))
 
 ;; Encryption round
 (defn aes-encrypt-round
   "One round of AES encryption"
   [state round-key]
+  (println "Round")
+  (println state)
   (-> state
       (sub-bytes false)
       (shift-rows false)
@@ -137,3 +151,31 @@
       (sub-bytes true)
       (add-round-key round-key)
       (mix-columns true)))
+
+
+(defn aes-encrypt-main
+  "AES encryption of one block"
+  [state expanded-key rounds]
+  (-> (mapv vec (partition 4 4 state))
+      (add-round-key (create-round-key expanded-key 0))
+      ((fn [s] (println "After:") (println s) s))
+      ((fn [s] (loop [i 1 new-s s] (if (< i rounds)
+                                     (recur (inc i) (aes-encrypt-round new-s (create-round-key expanded-key (* 16 i))))
+                                     new-s))))
+      (sub-bytes false)
+      (shift-rows false)
+      (add-round-key (create-round-key expanded-key (* 16 rounds)))))
+
+;; (aes-encrypt-main (range 16) (expand-key (range 32) 32 240) 14)
+
+(defn aes-decrypt-main
+  "AES decryption of one block"
+  [state expanded-key rounds]
+  (-> state
+      (add-round-key (create-round-key (vec expanded-key) (* 16 rounds)))
+      ((fn [s] (loop [i (dec rounds) new-s s] (if (< i rounds)
+                                                (recur (dec i) (aes-decrypt-round new-s (create-round-key expanded-key (* 16 i))))
+                                                new-s))))
+      (shift-rows true)
+      (sub-bytes true)
+      (add-round-key (create-round-key expanded-key 0))))
