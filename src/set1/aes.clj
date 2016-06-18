@@ -41,7 +41,7 @@
 ;; Key schedule core
 (defn key-schedule-core
   [word iter]
-  (-> (conj (rest word) (first word))
+  (->> (conj (subvec word 1) (word 0))
       (map constants/s-box)
       ((fn [w] (cons (bit-xor (first w) (constants/rcon iter)) (rest w))))))
 
@@ -60,10 +60,13 @@
                (inc rcon-iter)
                rcon-iter)
              (->> (subvec expanded-key (- current-size 4) current-size)
+                  ((fn [k] (if (zero? (rem current-size initial-size))
+                             (key-schedule-core k rcon-iter)
+                             k)))
                   ((fn [k] (if (and (= initial-size 32) (= (rem current-size initial-size) 16))
                             (map constants/s-box k) ;; For 256-bit keys perform another s-box transform
                             k)))
-                  (map #(bit-xor %1 %2) (subvec expanded-key (- current-size initial-size))) ;; XOR generated 4 bytes with previous 4 bytes to expand key
+                  (map #(bit-xor %1 %2) (subvec expanded-key (- current-size initial-size) (- current-size initial-size -4))) ;; XOR generated 4 bytes with previous 4 bytes to expand key
                   (into expanded-key))))))
 
 
@@ -103,7 +106,7 @@
 (defn mix-column
   "Mix columns"
   [column inv?]
-  (println column)
+  ;; (println column)
   (def mult (if-not inv? [2, 1, 1, 3] [14, 9, 13, 11]))
   (map (fn [order] (u/reduce' #(bit-xor %1 (column %2) %3)
                               0 order mult))
@@ -111,8 +114,8 @@
 
 (defn mix-columns
   [state inv?]
-  (println state)
-  (apply interleave (map #(mix-column % inv?) (apply map vector state))))
+  ;; (println state)
+  (apply map vector (map #(mix-column % inv?) (apply map vector state))))
 
 ;; Add round key step
 (defn add-round-key
@@ -133,9 +136,10 @@
 (defn aes-encrypt-round
   "One round of AES encryption"
   [state round-key]
-  (println "Round")
-  (println state)
+  ;; (println "Round")
+  ;; (println state)
   (-> state
+      ;;((fn [s] (println "In round:") (println s) s))
       (sub-bytes false)
       (shift-rows false)
       (mix-columns false)
@@ -158,7 +162,6 @@
   [state expanded-key rounds]
   (-> (mapv vec (partition 4 4 state))
       (add-round-key (create-round-key expanded-key 0))
-      ((fn [s] (println "After:") (println s) s))
       ((fn [s] (loop [i 1 new-s s] (if (< i rounds)
                                      (recur (inc i) (aes-encrypt-round new-s (create-round-key expanded-key (* 16 i))))
                                      new-s))))
