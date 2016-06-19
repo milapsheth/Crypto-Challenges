@@ -13,7 +13,7 @@ My attempt at completing [the crypto challenges](http://cryptopals.com/) and pla
    - [x] Challenge 4
    - [x] Challenge 5
    - [x] Challenge 6
-   - [ ] Challenge 7
+   - [x] Challenge 7
    - [ ] Challenge 8
 * Set 2
 * Set 3

@@ -71,7 +71,8 @@
 
 
 ;; Sub bytes step
-(defn sub-bytes  "Replace a byte with the corresponding
+(defn sub-bytes
+  "Replace a byte with the corresponding
   value at index in the Rijndael S-box"
   [state inv?]
   (if-not inv?
@@ -80,7 +81,8 @@
 
 ;; Shift rows step
 (defn shift-rows
-  "Rotate state rows"
+  "Rotate state rows.
+  ith row rotates i times."
   [state inv?]
   (let [idx (if-not inv? (fn [i] i) (fn [i] (- 4 i)))]
     (map-indexed #(concat (drop (idx %1) %2) (take (idx %1) %2)) state)))
@@ -103,7 +105,7 @@
                (bit-shift-right b 1))))))
 
 (defn mix-column
-  "Mix columns"
+  "Rijndael mix columns step."
   [column inv?]
   (def mult (if-not inv? [2, 1, 1, 3] [14, 9, 13, 11]))
   (map (fn [order] (u/reduce' #(bit-xor %1 (galois-mult (column %2) %3))
@@ -112,7 +114,6 @@
 
 (defn mix-columns
   [state inv?]
-  ;; (println state)
   (apply map vector
          (map #(mix-column % inv?)
               (apply map vector state))))
@@ -122,7 +123,7 @@
   "Add round key step"
   [state round-key]
   (map #(map (fn [p k] (bit-xor p k)) %1 %2)
-       state (apply map vector (partition 4 4 round-key))))
+       state round-key))
 
 ;; Create round key
 (defn create-round-key
@@ -131,17 +132,15 @@
   position within the expanded key.
   "
   [expanded-key round-key-pointer]
-  (subvec expanded-key round-key-pointer (+ round-key-pointer 16))
-  #_ (apply mapv vector (partition 4 4 (subvec expanded-key round-key-pointer (+ round-key-pointer 16)))))
+  (apply map vector
+         (partition 4 4 (subvec expanded-key round-key-pointer (+ round-key-pointer 16)))))
+
 
 ;; Encryption round
 (defn aes-encrypt-round
   "One round of AES encryption"
   [state round-key]
-  ;; (println "Round")
-  ;; (println state)
   (-> state
-      ;;((fn [s] (println "In round:") (println s) s))
       (sub-bytes false)
       (shift-rows false)
       (mix-columns false)
@@ -166,29 +165,50 @@
         expanded-key (expand-key cipher-key key-size (constants/expanded-key-size key-size))]
     (-> (apply mapv vector (partition 4 4 block))
         (add-round-key (create-round-key expanded-key 0))
-        ((fn [s] (println s) s))
         ((fn [s] (loop [i 1 new-s s] (if (< i rounds)
                                        (recur (inc i) (aes-encrypt-round new-s (create-round-key expanded-key (* 16 i))))
                                        new-s))))
         (sub-bytes false)
         (shift-rows false)
-        (add-round-key (create-round-key expanded-key (* 16 rounds))))))
+        (add-round-key (create-round-key expanded-key (* 16 rounds)))
+        ((fn [state] (apply mapcat vector state))))))
 
-;; (aes-encrypt (range 16) (expand-key (range 32) 32 240) 14)
 
 (defn aes-decrypt
   "AES decryption of one block"
   [block cipher-key key-size]
   (let [rounds (constants/num-rounds key-size)
-        expanded-key (expand-key cipher-key key-size rounds)]
+        expanded-key (expand-key cipher-key key-size (constants/expanded-key-size key-size))]
     (-> (apply mapv vector (partition 4 4 block))
-        (add-round-key (create-round-key (vec expanded-key) (* 16 rounds)))
-        ((fn [s] (loop [i (dec rounds) new-s s] (if (< i rounds)
-                                                  (recur (dec i) (aes-decrypt-round new-s (create-round-key expanded-key (* 16 i))))
-                                                  new-s))))
+        (add-round-key (create-round-key expanded-key (* 16 rounds)))
+        ((fn [s] (loop [i (dec rounds) new-s s] (if (zero? i)
+                                                  new-s
+                                                  (recur (dec i) (aes-decrypt-round new-s (create-round-key expanded-key (* 16 i))))))))
         (shift-rows true)
         (sub-bytes true)
-        (add-round-key (create-round-key expanded-key 0)))))
+        (add-round-key (create-round-key expanded-key 0))
+        ((fn [state] (apply mapcat vector state))))))
   
 
-;; Encrypt AES block
+
+;; Modes of Encryption
+
+;; ECB mode (this is the shitty one)
+(defn encrypt
+  "Encrypt input with AES.
+  Padding is done for input if required"
+  [input cipher-key]
+  (def key-size (count cipher-key))
+  (when (zero? (get #{16 24 32} key-size 0))
+    (Exception. "Key is not 128, 196 or 256 bit"))
+  (mapcat #(aes-encrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE 0 input) ))
+
+
+(defn decrypt
+  "Decrypt input with AES.
+  Padding is done for input if required"
+  [input cipher-key]
+  (def key-size (count cipher-key))
+  (when (zero? (get #{16 24 32} key-size 0))
+    (Exception. "Key is not 128, 196 or 256 bit"))
+  (mapcat #(aes-decrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE (repeat 0) input)))

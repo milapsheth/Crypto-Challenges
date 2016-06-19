@@ -2,6 +2,7 @@
 
 
 ;; AES blocks
+(def BLOCK-SIZE 16)
 
 ;; Round constant words
 (def rcon
