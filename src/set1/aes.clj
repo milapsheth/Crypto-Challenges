@@ -83,8 +83,7 @@
   "Rotate state rows"
   [state inv?]
   (let [idx (if-not inv? (fn [i] i) (fn [i] (- 4 i)))]
-    (map-indexed #(concat (drop (idx %1) %2) (take (idx %1) %2))
-                 state)))
+    (map-indexed #(concat (drop (idx %1) %2) (take (idx %1) %2)) state)))
 
 ;; Mix columns step
 
@@ -96,32 +95,34 @@
          b y]
     (if (zero? i)
       ans
-      (let [high-bit-set (bit-and a 0x80)]
+      (let [high-bit-not-set (zero? (bit-and a 0x80))]
         (recur (dec i)
                (if-not (zero? (bit-and b 1)) (bit-xor ans a) ans)
                (let [new-a (bit-and (bit-shift-left a 1) 0xFF)]
-                 (if-not (zero? high-bit-set) (bit-and new-a 0x1b) new-a))
+                 (if-not high-bit-not-set (bit-xor new-a 0x1b) new-a))
                (bit-shift-right b 1))))))
 
 (defn mix-column
   "Mix columns"
   [column inv?]
-  ;; (println column)
   (def mult (if-not inv? [2, 1, 1, 3] [14, 9, 13, 11]))
-  (map (fn [order] (u/reduce' #(bit-xor %1 (column %2) %3)
+  (map (fn [order] (u/reduce' #(bit-xor %1 (galois-mult (column %2) %3))
                               0 order mult))
        [[0 3 2 1], [1 0 3 2], [2 1 0 3], [3 2 1 0]]))
 
 (defn mix-columns
   [state inv?]
   ;; (println state)
-  (apply map vector (map #(mix-column % inv?) (apply map vector state))))
+  (apply map vector
+         (map #(mix-column % inv?)
+              (apply map vector state))))
 
 ;; Add round key step
 (defn add-round-key
   "Add round key step"
-  [state cipher-key]
-  (map #(map (fn [p k] (bit-xor p k)) %1 %2) state cipher-key))
+  [state round-key]
+  (map #(map (fn [p k] (bit-xor p k)) %1 %2)
+       state (apply map vector (partition 4 4 round-key))))
 
 ;; Create round key
 (defn create-round-key
@@ -130,7 +131,8 @@
   position within the expanded key.
   "
   [expanded-key round-key-pointer]
-  (apply mapv vector (partition 4 4 (subvec expanded-key round-key-pointer (+ round-key-pointer 16)))))
+  (subvec expanded-key round-key-pointer (+ round-key-pointer 16))
+  #_ (apply mapv vector (partition 4 4 (subvec expanded-key round-key-pointer (+ round-key-pointer 16)))))
 
 ;; Encryption round
 (defn aes-encrypt-round
@@ -157,28 +159,36 @@
       (mix-columns true)))
 
 
-(defn aes-encrypt-main
+(defn aes-encrypt
   "AES encryption of one block"
-  [state expanded-key rounds]
-  (-> (mapv vec (partition 4 4 state))
-      (add-round-key (create-round-key expanded-key 0))
-      ((fn [s] (loop [i 1 new-s s] (if (< i rounds)
-                                     (recur (inc i) (aes-encrypt-round new-s (create-round-key expanded-key (* 16 i))))
-                                     new-s))))
-      (sub-bytes false)
-      (shift-rows false)
-      (add-round-key (create-round-key expanded-key (* 16 rounds)))))
+  [block cipher-key key-size]
+  (let [rounds (constants/num-rounds key-size)
+        expanded-key (expand-key cipher-key key-size (constants/expanded-key-size key-size))]
+    (-> (apply mapv vector (partition 4 4 block))
+        (add-round-key (create-round-key expanded-key 0))
+        ((fn [s] (println s) s))
+        ((fn [s] (loop [i 1 new-s s] (if (< i rounds)
+                                       (recur (inc i) (aes-encrypt-round new-s (create-round-key expanded-key (* 16 i))))
+                                       new-s))))
+        (sub-bytes false)
+        (shift-rows false)
+        (add-round-key (create-round-key expanded-key (* 16 rounds))))))
 
-;; (aes-encrypt-main (range 16) (expand-key (range 32) 32 240) 14)
+;; (aes-encrypt (range 16) (expand-key (range 32) 32 240) 14)
 
-(defn aes-decrypt-main
+(defn aes-decrypt
   "AES decryption of one block"
-  [state expanded-key rounds]
-  (-> state
-      (add-round-key (create-round-key (vec expanded-key) (* 16 rounds)))
-      ((fn [s] (loop [i (dec rounds) new-s s] (if (< i rounds)
-                                                (recur (dec i) (aes-decrypt-round new-s (create-round-key expanded-key (* 16 i))))
-                                                new-s))))
-      (shift-rows true)
-      (sub-bytes true)
-      (add-round-key (create-round-key expanded-key 0))))
+  [block cipher-key key-size]
+  (let [rounds (constants/num-rounds key-size)
+        expanded-key (expand-key cipher-key key-size rounds)]
+    (-> (apply mapv vector (partition 4 4 block))
+        (add-round-key (create-round-key (vec expanded-key) (* 16 rounds)))
+        ((fn [s] (loop [i (dec rounds) new-s s] (if (< i rounds)
+                                                  (recur (dec i) (aes-decrypt-round new-s (create-round-key expanded-key (* 16 i))))
+                                                  new-s))))
+        (shift-rows true)
+        (sub-bytes true)
+        (add-round-key (create-round-key expanded-key 0)))))
+  
+
+;; Encrypt AES block

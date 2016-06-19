@@ -30,8 +30,11 @@
    0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74,
    0xe8, 0xcb])
 
-;; Map block_size -> num_rounds
+;; Map key_size -> num_rounds
 (def num-rounds {16 10, 24 12, 32 14})
+
+;; Map key_size -> expanded-key-size
+(def expanded-key-size {16 176, 24 208, 32 240})
 
 ;; S-boxes
 (def s-box
