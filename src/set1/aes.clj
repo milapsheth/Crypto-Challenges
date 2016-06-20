@@ -1,6 +1,7 @@
 (ns set1.aes
   (:require [set1.aes-constants :as constants]
-   [util.conv :as u]))
+            [set1.padding :refer [pad-plaintext unpad-plaintext]]
+            [util.conv :as u]))
 
 
 ;; AES algorithm description
@@ -190,7 +191,6 @@
         ((fn [state] (apply mapcat vector state))))))
   
 
-
 ;; Modes of Encryption
 
 ;; ECB mode (this is the shitty one)
@@ -201,7 +201,9 @@
   (def key-size (count cipher-key))
   (when (zero? (get #{16 24 32} key-size 0))
     (Exception. "Key is not 128, 196 or 256 bit"))
-  (mapcat #(aes-encrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE 0 input) ))
+  (def padded-plaintext (pad-plaintext input constants/BLOCK-SIZE :pkcs7))
+  
+  (mapcat #(aes-encrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE 0 padded-plaintext)))
 
 
 (defn decrypt
@@ -211,4 +213,5 @@
   (def key-size (count cipher-key))
   (when (zero? (get #{16 24 32} key-size 0))
     (Exception. "Key is not 128, 196 or 256 bit"))
-  (mapcat #(aes-decrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE (repeat 0) input)))
+  (-> (mapcat #(aes-decrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE (repeat 0) input))
+      (unpad-plaintext constants/BLOCK-SIZE :pkcs7)))

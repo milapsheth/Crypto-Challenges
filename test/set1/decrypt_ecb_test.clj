@@ -24,7 +24,7 @@
     (is (= (decrypt-ecb ciphertext) plaintext))))
 
 (deftest aes-test
-  (def plaintext "Check if my AES encryption works")
-  (testing "Check working of AES"
+  (def plaintext "Check if my AES implementation encryption works")
+  (testing "AES encryption/decryption doesn't work"
     (is (= plaintext
            (decrypt-ecb (aes/encrypt (map int plaintext) cipher-key))))))
