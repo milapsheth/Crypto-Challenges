@@ -34,6 +34,9 @@
 ;; Map key_size -> num_rounds
 (def num-rounds {16 10, 24 12, 32 14})
 
+;; Supported key sizes
+(def possible-key-size? #{16, 24, 32})
+
 ;; Map key_size -> expanded-key-size
 (def expanded-key-size {16 176, 24 208, 32 240})
 

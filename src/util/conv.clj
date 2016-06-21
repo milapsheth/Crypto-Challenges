@@ -2,6 +2,10 @@
   (:require [clojure.string :as s]))
 
 
+(defn xor
+  [data1 data2]
+  (map #(bit-xor %1 %2) data1 data2))
+
 (defn hex-to-int
   [ch]
   (let [c (int ch)]
@@ -34,6 +38,8 @@
   (mapv hex-to-int (seq data)))
 
 (defn lst-to-str [data] (clojure.string/join (map int-to-hex data)))
+
+(defn bytes-to-str [data] (clojure.string/join (map char data)))
 
 (defn reduce'
   [f b l & coll]

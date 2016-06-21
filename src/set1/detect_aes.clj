@@ -8,7 +8,7 @@
          best-score 0
          ciphertexts ciphers]
     (if (empty? ciphertexts)
-      best-match
+      [best-match best-score]
       (let [cipher (partition constants/BLOCK-SIZE constants/BLOCK-SIZE
                               (first ciphertexts))
             score (- (count cipher) (count (set cipher)))]

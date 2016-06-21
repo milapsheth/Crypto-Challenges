@@ -16,7 +16,7 @@
 
 (defn decrypt-ecb
   [cipher]
-  (str/join (map char (aes/decrypt cipher cipher-key))))
+  (u/bytes-to-str (aes/decrypt cipher cipher-key :ecb)))
 
 
 (deftest decrypt-ecb-test
@@ -27,4 +27,4 @@
   (def plaintext "Check if my AES implementation encryption works")
   (testing "AES encryption/decryption doesn't work"
     (is (= plaintext
-           (decrypt-ecb (aes/encrypt (map int plaintext) cipher-key))))))
+           (decrypt-ecb (aes/encrypt (map int plaintext) cipher-key :ecb))))))

@@ -14,3 +14,6 @@
   "Returns a random string of given length"
   [length]
   (apply str (repeatedly length random-char)))
+
+(defn rand-bytes [n]
+  (repeatedly n #(rand-int 256)))

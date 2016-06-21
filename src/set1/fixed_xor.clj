@@ -1,5 +1,5 @@
 (ns set1.fixed-xor
-  (:require [util.conv :refer :all]))
+  (:require [util.conv :as u]))
 
 
 ;; Challenge 2
@@ -18,10 +18,6 @@
 ;; 746865206b696420646f6e277420706c6179
 
 
-(defn xor
-  [data1 data2]
-  (map #(bit-xor %1 %2) data1 data2))
-
 (defn fixed-xor
   [data1 data2]
-  (lst-to-str (xor (str-to-lst data1) (str-to-lst data2))))
+  (clojure.string/join (map u/int-to-hex (u/xor (u/str-to-lst data1) (u/str-to-lst data2)))))

@@ -14,4 +14,4 @@
 (deftest detect-aes-test
   (testing "Failed to detect AES(ECB) encrypted text"
     (is (= ecb-encrypted-text
-           (sut/detect-aes ciphertexts)))))
+           ((sut/detect-aes ciphertexts) 0)))))

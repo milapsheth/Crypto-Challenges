@@ -18,8 +18,8 @@ Run `lein test` to run all challenges.
    - [x] [AES in ECB mode](test/set1/decrypt_aes_test.clj)
    - [x] [Detect AES in ECB mode](test/set1/detect_aes_test.clj)
 * Set 2
-   - [ ] Implement PKCS#7 padding
-   - [ ] Implement CBC mode
+   - [x] Implement PKCS#7 padding
+   - [x] Implement CBC mode
    - [ ] An ECB/CBC detection oracle
    - [ ] Byte-at-a-time ECB decryption (Simple)
    - [ ] ECB cut-and-paste

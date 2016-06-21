@@ -1,5 +1,5 @@
 (ns set1.aes
-  (:require [set1.aes-constants :as constants]
+  (:require [set1.aes-constants :as c]
             [set1.padding :refer [pad-plaintext unpad-plaintext]]
             [util.conv :as u]))
 
@@ -43,8 +43,8 @@
 (defn key-schedule-core
   [word iter]
   (->> (conj (subvec word 1) (word 0))
-      (map constants/s-box)
-      ((fn [w] (cons (bit-xor (first w) (constants/rcon iter)) (rest w))))))
+      (map c/s-box)
+      ((fn [w] (cons (bit-xor (first w) (c/rcon iter)) (rest w))))))
 
 ;; Expand key
 (defn expand-key
@@ -65,7 +65,7 @@
                              (key-schedule-core k rcon-iter)
                              k)))
                   ((fn [k] (if (and (= initial-size 32) (= (rem current-size initial-size) 16))
-                            (map constants/s-box k) ;; For 256-bit keys perform another s-box transform
+                            (map c/s-box k) ;; For 256-bit keys perform another s-box transform
                             k)))
                   (map #(bit-xor %1 %2) (subvec expanded-key (- current-size initial-size) (- current-size initial-size -4))) ;; XOR generated 4 bytes with previous 4 bytes to expand key
                   (into expanded-key))))))
@@ -77,8 +77,8 @@
   value at index in the Rijndael S-box"
   [state inv?]
   (if-not inv?
-    (map #(map constants/s-box %) state)
-    (map #(map constants/inverse-s-box %) state)))
+    (map #(map c/s-box %) state)
+    (map #(map c/inverse-s-box %) state)))
 
 ;; Shift rows step
 (defn shift-rows
@@ -162,8 +162,8 @@
 (defn aes-encrypt
   "AES encryption of one block"
   [block cipher-key key-size]
-  (let [rounds (constants/num-rounds key-size)
-        expanded-key (expand-key cipher-key key-size (constants/expanded-key-size key-size))]
+  (let [rounds (c/num-rounds key-size)
+        expanded-key (expand-key cipher-key key-size (c/expanded-key-size key-size))]
     (-> (apply mapv vector (partition 4 4 block))
         (add-round-key (create-round-key expanded-key 0))
         ((fn [s] (loop [i 1 new-s s] (if (< i rounds)
@@ -178,8 +178,8 @@
 (defn aes-decrypt
   "AES decryption of one block"
   [block cipher-key key-size]
-  (let [rounds (constants/num-rounds key-size)
-        expanded-key (expand-key cipher-key key-size (constants/expanded-key-size key-size))]
+  (let [rounds (c/num-rounds key-size)
+        expanded-key (expand-key cipher-key key-size (c/expanded-key-size key-size))]
     (-> (apply mapv vector (partition 4 4 block))
         (add-round-key (create-round-key expanded-key (* 16 rounds)))
         ((fn [s] (loop [i (dec rounds) new-s s] (if (zero? i)
@@ -194,24 +194,94 @@
 ;; Modes of Encryption
 
 ;; ECB mode (this is the shitty one)
-(defn encrypt
+(defn encrypt-ecb
   "Encrypt input with AES.
   Padding is done for input if required"
-  [input cipher-key]
+  [plaintext cipher-key]
   (def key-size (count cipher-key))
-  (when (zero? (get #{16 24 32} key-size 0))
-    (Exception. "Key is not 128, 196 or 256 bit"))
-  (def padded-plaintext (pad-plaintext input constants/BLOCK-SIZE :pkcs7))
+
+  (def padded-plaintext (pad-plaintext plaintext c/BLOCK-SIZE :pkcs7))
   
-  (mapcat #(aes-encrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE 0 padded-plaintext)))
+  (mapcat #(aes-encrypt % cipher-key key-size)
+          (partition c/BLOCK-SIZE c/BLOCK-SIZE 0 padded-plaintext)))
+
+
+(defn decrypt-ecb
+  "Decrypt input with AES.
+  Padding is done for input if required"
+  [ciphertext cipher-key]
+  (def key-size (count cipher-key))
+
+  (-> (mapcat #(aes-decrypt % cipher-key key-size)
+              (partition c/BLOCK-SIZE c/BLOCK-SIZE (repeat 0) ciphertext))
+      (unpad-plaintext c/BLOCK-SIZE :pkcs7)))
+
+
+;; CBC mode of operation
+(defn encrypt-cbc
+  "Encrypt plaintext using AES under CBC mode"
+  [plaintext cipher-key iv]
+  (let [key-size (count cipher-key)]
+    
+    (loop [padded-text (partition c/BLOCK-SIZE c/BLOCK-SIZE
+                                  (pad-plaintext plaintext c/BLOCK-SIZE :pkcs7))
+           encrypted-block iv
+           ciphertext '()]
+      
+      (if (empty? padded-text)
+        (apply concat (reverse ciphertext))
+
+        (let [encrypted-block (aes-encrypt (u/xor (first padded-text) encrypted-block) cipher-key key-size)]
+          (recur (rest padded-text)
+                 encrypted-block
+                 (cons encrypted-block ciphertext)))))))
+
+
+(defn decrypt-cbc
+  "Decrypt ciphertext using AES under CBC mode"
+  [ciphertext cipher-key iv]
+  (when-not (= c/BLOCK-SIZE (count iv))
+    (Exception. "IV should be 16 bits"))
+  
+  (let [key-size (count cipher-key)]
+    (loop [ciphertext (partition c/BLOCK-SIZE c/BLOCK-SIZE ciphertext)
+           decrypted-block iv
+           plaintext '()]
+      
+      (if (empty? ciphertext)
+        (unpad-plaintext (apply concat (reverse plaintext))
+                         c/BLOCK-SIZE :pkcs7)
+
+        (let [decrypted-block (u/xor (aes-decrypt (first ciphertext) cipher-key key-size)
+                                   decrypted-block)]
+          (recur (rest ciphertext)
+                 (first ciphertext)
+                 (cons decrypted-block plaintext)))))))
+
+
+;; Generic AES encryption/decryption functions
+
+(defn encrypt
+  "Encrypts plaintext using AES under given mode"
+  [plaintext cipher-key mode & args]
+
+  (when-not (and (c/possible-key-size? (count cipher-key))
+                 (zero? (rem (count plaintext) c/BLOCK-SIZE)))
+    (Exception. "Invalid param length"))
+  
+  (let [functions {:ecb encrypt-ecb, :cbc encrypt-cbc}]
+    (apply (functions mode)
+           plaintext cipher-key args)))
 
 
 (defn decrypt
-  "Decrypt input with AES.
-  Padding is done for input if required"
-  [input cipher-key]
-  (def key-size (count cipher-key))
-  (when (zero? (get #{16 24 32} key-size 0))
-    (Exception. "Key is not 128, 196 or 256 bit"))
-  (-> (mapcat #(aes-decrypt % cipher-key key-size) (partition constants/BLOCK-SIZE constants/BLOCK-SIZE (repeat 0) input))
-      (unpad-plaintext constants/BLOCK-SIZE :pkcs7)))
+  "Decrypts ciphertext using AES under given mode"
+  [ciphertext cipher-key mode & args]
+
+  (when-not (and (c/possible-key-size? (count cipher-key))
+                 (zero? (rem (count ciphertext) c/BLOCK-SIZE)))
+    (Exception. "Invalid param length"))
+  
+  (let [functions {:ecb decrypt-ecb, :cbc decrypt-cbc}]
+    (apply (functions mode)
+           ciphertext cipher-key args)))
