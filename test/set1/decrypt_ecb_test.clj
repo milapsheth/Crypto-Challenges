@@ -25,6 +25,8 @@
 
 (deftest aes-test
   (def plaintext "Check if my AES implementation encryption works")
+  (def cipher-key (map int "YELLOW SUBMARINE"))
+  
   (testing "AES encryption/decryption doesn't work"
     (is (= plaintext
            (decrypt-ecb (aes/encrypt (map int plaintext) cipher-key :ecb))))))

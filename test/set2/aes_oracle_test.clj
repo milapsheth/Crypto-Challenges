@@ -3,7 +3,7 @@
             [clojure.test :refer :all]))
 
 
-(deftest aes-oracle-test
+(deftest ^:parallel aes-oracle-test
   (testing
       (let [plaintext (repeat (+ 50 (rand-int 50)) (int \A))]
         (-> (oracle/encrypt plaintext)

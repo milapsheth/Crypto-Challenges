@@ -1,7 +1,6 @@
 (ns set2.break-ecb-simple
   (:require [set1.aes :as aes]
-            [set2.aes-oracle :as oracle]
-            [clojure.string :as str]))
+            [set2.aes-oracle :refer [detect-mode]]))
 
 
 (def MAX-BLOCK-SIZE 32)
@@ -25,12 +24,19 @@
 
 
 (defn get-unknown-string-len
+  "Get the length of unknown string
+  Checks the maximum size of ciphertext
+  for encoding text of length 0 to block-size - 1
+  and deducts the size of string"
   [block-size oracle]
-  (- (reduce (fn [len i] (max len
-                              (count (oracle (repeat i 65)))))
-             0
-             (range 1 (inc block-size)))
-     (* 2 block-size)))
+  (- (apply - (reduce (fn [[len pad] i] (let [cipher-len (count (oracle (repeat i 65)))]
+                                          (if (> cipher-len len)
+                                            [cipher-len i]
+                                            [len pad])))
+                      [0 0]
+                      (range block-size)))
+     block-size))
+
 
 (defn discover-next-byte
   "Find next byte of unknown string"
@@ -42,7 +48,7 @@
 
     (loop [chr 0]
       (if (= chr 256)
-        (throw (Exception. (str/join (map char known-text)) #_ "Couldn't find the next byte"))
+        (throw (Exception. "Couldn't find the next byte"))
         (let [cipher-block (take block-size (oracle (conj plaintext chr)))]
           (if (= ciphertext cipher-block)
             chr
@@ -66,7 +72,7 @@
   (def block-size (discover-block-size oracle))
   
   (let [ciphertext (oracle (repeat (* 3 block-size) (int \A)))]
-    (when-not (= :ecb (oracle/detect-mode ciphertext))
+    (when-not (= :ecb (detect-mode ciphertext))
       (throw (Exception. "Encryption mode is not ECB and cannot be broken(yet)"))))
 
   (def unknown-str-len (get-unknown-string-len block-size oracle))

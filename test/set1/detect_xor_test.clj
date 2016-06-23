@@ -9,6 +9,6 @@
 (def ciphertext (clojure.string/split-lines (slurp (io/resource "set1/caesar_ciphertext.txt"))))
 
 ;; Detect the encrypted message
-(deftest detect-xor-test
+(deftest ^:parallel detect-xor-test
   (testing "Detected wrong message"
     (is (= (detect-encrypted ciphertext) plaintext))))

@@ -4,7 +4,7 @@
 
 My attempt at completing [the cryptopals crypto challenges](http://cryptopals.com/) and planning to learn Clojure on the side.
 
-Run `lein test` to run all challenges.
+Run `lein parallel-test` to run all challenges.
 
 ## Completed challenges
 
@@ -18,10 +18,10 @@ Run `lein test` to run all challenges.
    - [x] [AES in ECB mode](test/set1/decrypt_aes_test.clj)
    - [x] [Detect AES in ECB mode](test/set1/detect_aes_test.clj)
 * Set 2
-   - [x] Implement PKCS#7 padding
-   - [x] Implement CBC mode
-   - [x] An ECB/CBC detection oracle
-   - [ ] Byte-at-a-time ECB decryption (Simple)
+   - [x] [Implement PKCS#7 padding](test/set2/padding_test.clj)
+   - [x] [Implement CBC mode](test/set2/decrypt_cbc_test.clj)
+   - [x] [An ECB/CBC detection oracle](test/set2/aes_oracle_test.clj)
+   - [x] [Byte-at-a-time ECB decryption (Simple)](test/set2/break_ecb_simple_test.clj)
    - [ ] ECB cut-and-paste
    - [ ] Byte-at-a-time ECB decryption (Harder)
    - [ ] PKCS#7 padding validation

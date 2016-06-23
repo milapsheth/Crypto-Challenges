@@ -20,12 +20,12 @@
 
 ;; Tests
 
-(deftest decrypt-vigenere-test
+(deftest ^:parallel decrypt-vigenere-test
   (testing "Failed decryption of vigenere cipher"
     (is (= plaintext (decrypt-cipher ciphertext)))))
 
 
-(deftest encrypt-and-decrypt-corpus
+(deftest ^:parallel encrypt-and-decrypt-corpus
   (testing "Failed decryption of vigenere cipher"
       (let [plaintext (map int (slurp (io/resource "plaintext1.txt")))
             cipher-key (map int (random/random-string (+ 2 (rand-int 39))))]
