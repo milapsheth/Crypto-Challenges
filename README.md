@@ -4,7 +4,7 @@
 
 My attempt at completing [the cryptopals crypto challenges](http://cryptopals.com/) and planning to learn Clojure on the side.
 
-Run `lein parallel-test` to run all challenges.
+Run `lein test` to run all challenges.
 
 ## Completed challenges
 
