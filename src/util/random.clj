@@ -5,15 +5,15 @@
                                     (range 66 91) ; A-Z
                                     (range 97 123)))) ; a-z
 
-(defn random-char
+(defn char
   "Returns a random char out of [A-Za-z0-9]"
   []
   (rand-nth VALID-CHARS))
 
-(defn random-string
+(defn string
   "Returns a random string of given length"
   [length]
-  (apply str (repeatedly length random-char)))
+  (apply str (repeatedly length char)))
 
-(defn rand-bytes [n]
+(defn bytes [n]
   (repeatedly n #(rand-int 256)))

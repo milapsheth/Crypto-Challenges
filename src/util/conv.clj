@@ -41,6 +41,8 @@
 
 (defn bytes-to-str [data] (clojure.string/join (map char data)))
 
+(defn str-to-bytes [data] (map int data))
+
 (defn reduce'
   [f b l & coll]
   (if (empty? l)

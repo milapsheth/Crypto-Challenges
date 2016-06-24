@@ -241,7 +241,7 @@
   "Decrypt ciphertext using AES under CBC mode"
   [ciphertext cipher-key iv]
   (when-not (= c/BLOCK-SIZE (count iv))
-    (Exception. "IV should be 16 bits"))
+    (throw (Exception. "IV should be 16 bits")))
   
   (let [key-size (count cipher-key)]
     (loop [ciphertext (partition c/BLOCK-SIZE c/BLOCK-SIZE ciphertext)
@@ -265,9 +265,8 @@
   "Encrypts plaintext using AES under given mode"
   [plaintext cipher-key mode & args]
 
-  (when-not (and (c/possible-key-size? (count cipher-key))
-                 (zero? (rem (count plaintext) c/BLOCK-SIZE)))
-    (Exception. "Invalid param length"))
+  (when-not (c/possible-key-size? (count cipher-key))
+    (throw (Exception. "Invalid key length")))
   
   (let [functions {:ecb encrypt-ecb, :cbc encrypt-cbc}]
     (apply (functions mode)
@@ -278,9 +277,8 @@
   "Decrypts ciphertext using AES under given mode"
   [ciphertext cipher-key mode & args]
 
-  (when-not (and (c/possible-key-size? (count cipher-key))
-                 (zero? (rem (count ciphertext) c/BLOCK-SIZE)))
-    (Exception. "Invalid param length"))
+  (when-not (c/possible-key-size? (count cipher-key))
+    (throw (Exception. "Invalid key length")))
   
   (let [functions {:ecb decrypt-ecb, :cbc decrypt-cbc}]
     (apply (functions mode)

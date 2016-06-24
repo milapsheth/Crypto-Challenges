@@ -28,5 +28,5 @@
 (deftest ^:parallel encrypt-and-decrypt-corpus
   (testing "Failed decryption of vigenere cipher"
       (let [plaintext (map int (slurp (io/resource "plaintext1.txt")))
-            cipher-key (map int (random/random-string (+ 2 (rand-int 39))))]
+            cipher-key (map int (random/string (+ 2 (rand-int 39))))]
         (is (= plaintext (decrypt-vigenere (v/encrypt plaintext cipher-key)))))))
