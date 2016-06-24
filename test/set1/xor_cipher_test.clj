@@ -17,11 +17,3 @@
 
 (deftest xor-cipher-test
   (testing "Failed decryption of caesar cipher!" (is (= ciphertext plaintext))))
-
-
-(deftest encrypt-and-decrypt-corpus
-  (testing
-      (let [plaintext (map int (take 100 (slurp (io/resource "plaintext1.txt"))))]
-        (dotimes [n 5]
-          (let [cipher-key (rand-int 256)]
-            (is (= plaintext (decrypt-caesar (encrypt-caesar plaintext cipher-key)))))))))
