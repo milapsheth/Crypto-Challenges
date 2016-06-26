@@ -1,16 +1,19 @@
-(ns set2.break-ecb-simple-test
-  (:require [set2.break-ecb-simple :as sut]
+(ns set2.break-ecb-harder-test
+  (:require [set2.break-ecb-harder :as sut]
             [clojure.test :refer :all]
             [set1.aes :as aes]
-            [util.conv :as u]))
+            [util.conv :as u]
+            [util.random :as rand]))
 
 
-(def random-cipher-key (repeatedly 16 #(rand-int 256)))
+(def random-cipher-key (rand/bytes 16))
+
+(def random-prefix (rand/bytes 0 #_(rand-int 32)))
 
 (defn oracle-encrypt
   [plaintext unknown-string]
-  (aes/encrypt (concat plaintext unknown-string) random-cipher-key :ecb))
-
+  (aes/encrypt (concat random-prefix plaintext unknown-string) random-cipher-key :ecb))
+;; (def unknown-string (map int "UNKNOWN STRING"))
 
 (deftest ^:parallel break-ecb-basic-test
   (testing "Failed to break ECB mode on sample string"
@@ -22,7 +25,6 @@
 ;; Not run as part of the suite as it takes a bit of time to run
 
 (def unknown-string (u/base64-to-byte' "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK"))
-
 
 #_
 (deftest break-ecb-simple-test

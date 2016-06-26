@@ -1,5 +1,6 @@
 (ns util.conv
-  (:require [clojure.string :as s]))
+  (:require [clojure.string :as s]
+            [clojure.string :as str]))
 
 
 (defn xor
@@ -103,7 +104,18 @@
       (recur rst (concat (reverse (decode-base64-block block)) acc)))))
 
 ;; Custom list processors
+(defn find-seq
+  "Find the index where val starts from in lst"
+  [lst val]
+  (str/index-of (bytes-to-str lst) (bytes-to-str val)))
+
+(defn group-by
+  "Translates to (partition block-size block-size lst)"
+  [block-size lst]
+  (partition block-size block-size lst))
+
 (defn option-map'
+  "Maps a function on a seq but removes results that return nil"
   [f l]
   (loop [lsts l
          acc '()]

@@ -7,20 +7,18 @@
 
 (defn discover-block-size
   [oracle]
-  (loop [plaintext '(65)
-         last-block-size 0
-         blocks #{}]
+  (def empty-cipher-length (count (oracle '())))
+  (loop [plaintext '(0)
+         text-size 0]
     
-    (if (> last-block-size MAX-BLOCK-SIZE)
+    (if (> text-size MAX-BLOCK-SIZE)
       (throw (Exception. "Couldn't discover block size"))
-      (let [encrypted-block (oracle plaintext)]
-        ;; Test it on 2 consecutive lengths of ciphertext to protect against any collisions
-        (if (and (blocks (take last-block-size encrypted-block))
-                 (blocks (take last-block-size (oracle (cons 65 plaintext)))))
-          last-block-size
-          (recur (cons 65 plaintext)
-                 (inc last-block-size)
-                 (conj blocks (take (inc last-block-size) encrypted-block))))))))
+      (let [cipher-length (count (oracle plaintext))]
+
+        (if (> cipher-length empty-cipher-length)
+          (- cipher-length empty-cipher-length)
+          (recur (cons 0 plaintext)
+                 (inc text-size)))))))
 
 
 (defn get-unknown-string-len
