@@ -21,7 +21,7 @@
   (str "email=" profile "&uid=10&role=user"))
 
 
-(def random-cipher-key (rand/bytes 16))
+(def random-cipher-key (rand/byte-lst 16))
 
 (defn encrypt-profile
   "Encrypt user profile using AES(ECB)"

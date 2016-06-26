@@ -7,9 +7,9 @@
   "Oracle encryption function.
   Returns AES encryption under ECB or CBC mode"
   [plaintext]
-  (let [padded-text (concat (rand/bytes (+ 5 (rand-int 6)))
+  (let [padded-text (concat (rand/byte-lst (+ 5 (rand-int 6)))
                             plaintext
-                            (rand/bytes (+ 5 (rand-int 6))))
+                            (rand/byte-lst (+ 5 (rand-int 6))))
         cipher-key (repeatedly 16 #(rand-int 256))
         choice (rand-int 2)]
     [([:ecb :cbc] choice),

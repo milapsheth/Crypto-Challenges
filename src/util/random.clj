@@ -15,5 +15,5 @@
   [length]
   (apply str (repeatedly length char)))
 
-(defn bytes [n]
+(defn byte-lst [n]
   (repeatedly n #(rand-int 256)))

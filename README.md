@@ -22,9 +22,9 @@ Run `lein parallel-test` to run all challenges.
    - [x] [Implement CBC mode](test/set2/decrypt_cbc_test.clj)
    - [x] [An ECB/CBC detection oracle](test/set2/aes_oracle_test.clj)
    - [x] [Byte-at-a-time ECB decryption (Simple)](test/set2/break_ecb_simple_test.clj)
-   - [x] ECB cut-and-paste
-   - [ ] Byte-at-a-time ECB decryption (Harder)
-   - [ ] PKCS#7 padding validation
+   - [x] [ECB cut-and-paste](test/set2/profile_parser_test.clj)
+   - [x] [Byte-at-a-time ECB decryption (Harder)](test/set2/break_ecb_harder_test.clj)
+   - [x] [PKCS#7 padding validation](test/set2/validate_padding_test.clj)
    - [ ] CBC bitflipping attacks
 * Set 3
 * Set 4

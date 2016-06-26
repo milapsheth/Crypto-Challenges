@@ -46,7 +46,7 @@
 
 (defn discover-next-byte
   "Find next byte of unknown string"
-  [known-text obtained-bytes block-size prefix-padding oracle]
+  [known-text obtained-bytes block-size prefix-padding prefix-block oracle]
   (let [block-to-attack (* block-size (quot obtained-bytes block-size))
         ciphertext (take block-size (drop block-to-attack
                                           (oracle (repeat (+ prefix-padding
@@ -56,7 +56,7 @@
     (loop [chr 0]
       (if (= chr 256)
         (throw (Exception. "Couldn't find the next byte"))
-        (let [cipher-block (take block-size (drop block-to-attack (oracle (conj plaintext chr))))]
+        (let [cipher-block (take block-size (drop prefix-block (oracle (conj plaintext chr))))]
           (if (= ciphertext cipher-block)
             chr
             (recur (inc chr))))))))
@@ -73,26 +73,32 @@
     (when-not (= :ecb (oracle/detect-mode ciphertext))
       (throw (Exception. "Encryption mode is not ECB and cannot be broken(yet)"))))
 
-  (def prefix-length (get-random-prefix-length oracle block-size))
-  
-  (def unknown-str-len (- (ecb/get-unknown-string-len block-size oracle) prefix-length))
+  (let [prefix-length (get-random-prefix-length oracle block-size)
 
-  (loop [found-bytes []
-         byte-index (+ (- prefix-length (rem prefix-length block-size))
-                       block-size)
-         text (vec (repeat (- (* 2 block-size) (rem prefix-length block-size)) 0))]
-    (println (str byte-index (u/bytes-to-str found-bytes)))
-    (if (>= (count found-bytes) unknown-str-len)
+        unknown-str-len (- (ecb/get-unknown-string-len block-size oracle) prefix-length)
 
-      found-bytes
-
-      (let [new-text (subvec text 1)
-            next-byte (discover-next-byte new-text
-                                          byte-index
-                                          block-size
-                                          (- block-size (rem prefix-length block-size)) oracle)]
+        prefix-padding (- block-size (rem prefix-length block-size))
         
-        (recur (conj found-bytes next-byte)
-               (inc byte-index)
-               (conj new-text next-byte))))))
+        prefix-block (+ prefix-padding prefix-length)]
+
+    (loop [found-bytes []
+           byte-index (+ (- prefix-length (rem prefix-length block-size))
+                         block-size)
+           text (vec (repeat (- (* 2 block-size) (rem prefix-length block-size)) 0))]
+
+      (if (>= (count found-bytes) unknown-str-len)
+
+        found-bytes
+
+        (let [new-text (subvec text 1)
+              next-byte (discover-next-byte new-text
+                                            byte-index
+                                            block-size
+                                            prefix-padding
+                                            prefix-block
+                                            oracle)]
+          
+          (recur (conj found-bytes next-byte)
+                 (inc byte-index)
+                 (conj new-text next-byte)))))))
 

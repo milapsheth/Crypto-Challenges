@@ -24,7 +24,7 @@
   (testing "Failed decryption of vigenere cipher"
     (is (= plaintext (decrypt-cipher ciphertext)))))
 
-
+#_
 (deftest ^:parallel encrypt-and-decrypt-corpus
   (testing "Failed decryption of vigenere cipher"
       (let [plaintext (map int (slurp (io/resource "plaintext1.txt")))

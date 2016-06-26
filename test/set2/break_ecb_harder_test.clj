@@ -6,9 +6,10 @@
             [util.random :as rand]))
 
 
-(def random-cipher-key (rand/bytes 16))
+(def random-cipher-key (rand/byte-lst 16))
 
-(def random-prefix (rand/bytes 0 #_(rand-int 32)))
+(def random-prefix (rand/byte-lst (rand-int 32)))
+
 
 (defn oracle-encrypt
   [plaintext unknown-string]
@@ -17,7 +18,7 @@
 
 (deftest ^:parallel break-ecb-basic-test
   (testing "Failed to break ECB mode on sample string"
-    (let [unknown-string (map int "UNKNOWN STRING")]
+    (let [unknown-string (map int "MY UNKNOWN STRING")]
       (is (= unknown-string
              (sut/break-ecb #(oracle-encrypt % unknown-string)))))))
 
