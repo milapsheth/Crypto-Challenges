@@ -5,7 +5,7 @@
 
 (def MAX-BLOCK-SIZE 32)
 
-(defn discover-block-size
+(defn find-block-size
   [oracle]
   (def empty-cipher-length (count (oracle '())))
   (loop [plaintext '(0)
@@ -21,7 +21,7 @@
                  (inc text-size)))))))
 
 
-(defn get-unknown-string-len
+(defn find-suffix-len
   "Get the length of unknown string
   Checks the maximum size of ciphertext
   for encoding text of length 0 to block-size - 1
@@ -53,27 +53,18 @@
             (recur (inc chr))))))))
 
 
-(defn create-plaintext-for-attack
-  "Creates plaintext padded n * block-size - 1
-  to attack ECB mode encryption"
-  [previous-text block-size]
-  (let [len (count previous-text)]
-    (vec (concat (repeat (- (dec block-size) (rem len block-size)) 65)
-                 previous-text))))
-
-
 (defn break-ecb
   "Break AES(ECB) encryption using chosen 
   plaintext attack to find unknown string"
   [oracle]
   
-  (def block-size (discover-block-size oracle))
+  (def block-size (find-block-size oracle))
   
   (let [ciphertext (oracle (repeat (* 3 block-size) (int \A)))]
     (when-not (= :ecb (detect-mode ciphertext))
       (throw (Exception. "Encryption mode is not ECB and cannot be broken(yet)"))))
 
-  (def unknown-str-len (get-unknown-string-len block-size oracle))
+  (def unknown-str-len (find-suffix-len block-size oracle))
 
   (loop [found-bytes []
          text (vec (repeat block-size (int \A)))]

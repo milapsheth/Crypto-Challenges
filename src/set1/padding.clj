@@ -23,7 +23,8 @@
   "Validate PKCS#7 padding"
   [text block-size]
   (let [padded-elem (last text)]
-    (every? #(= % padded-elem) (take-last padded-elem text))))
+    (and (not= padded-elem 0)
+         (every? #(= % padded-elem) (take-last padded-elem text)))))
 
 
 ;; Padding function

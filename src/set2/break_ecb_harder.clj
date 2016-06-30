@@ -7,6 +7,7 @@
 
 
 (defn get-equal-block-index
+  "Return the index of the first consecutive equal blocks"
   [ciphertext]
   (loop [blocks (rest ciphertext)
          i 1 block-num 0
@@ -23,12 +24,12 @@
                      (if equals? (inc equal-count) 1))))))
 
 
-(defn get-random-prefix-length
+(defn find-prefix-len
   "Find the length of random prefix"
   [oracle block-size]
   (def empty-cipher (oracle '()))
   (def empty-cipher-len (count empty-cipher))
-  (def known-block (get-equal-block-index (u/group-by block-size
+  (def known-block (get-equal-block-index (u/partition' block-size
                                                       (oracle (repeat (* 4 block-size) 0)))))
   
   (loop [i 0
@@ -67,15 +68,15 @@
   plaintext attack to find unknown string"
   [oracle]
   
-  (def block-size (ecb/discover-block-size oracle))
+  (def block-size (ecb/find-block-size oracle))
 
   (let [ciphertext (oracle (repeat (* 4 block-size) 0))]
     (when-not (= :ecb (oracle/detect-mode ciphertext))
       (throw (Exception. "Encryption mode is not ECB and cannot be broken(yet)"))))
 
-  (let [prefix-length (get-random-prefix-length oracle block-size)
+  (let [prefix-length (find-prefix-len oracle block-size)
 
-        unknown-str-len (- (ecb/get-unknown-string-len block-size oracle) prefix-length)
+        unknown-str-len (- (ecb/find-suffix-len block-size oracle) prefix-length)
 
         prefix-padding (- block-size (rem prefix-length block-size))
         

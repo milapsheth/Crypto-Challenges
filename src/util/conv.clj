@@ -4,8 +4,8 @@
 
 
 (defn xor
-  [data1 data2]
-  (map #(bit-xor %1 %2) data1 data2))
+  ([data1 data2] (map #(bit-xor %1 %2) data1 data2))
+  ([data1 data2 & rst] (map #(apply bit-xor %) (apply map vector (cons data1 (cons data2 rst))))))
 
 (defn hex-to-int
   [ch]
@@ -109,7 +109,7 @@
   [lst val]
   (str/index-of (bytes-to-str lst) (bytes-to-str val)))
 
-(defn group-by
+(defn partition'
   "Translates to (partition block-size block-size lst)"
   [block-size lst]
   (partition block-size block-size lst))
@@ -136,3 +136,9 @@
       nil
       (lazy-cat fst
                 (apply interleave' (map rest lsts))))))
+
+
+(defn subseq
+  "Get subsequence starting at idx taking n elements"
+  [lst idx n]
+  (take n (drop idx lst)))
