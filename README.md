@@ -25,7 +25,7 @@ Run `lein parallel-test` to run all challenges.
    - [x] [ECB cut-and-paste](test/set2/profile_parser_test.clj)
    - [x] [Byte-at-a-time ECB decryption (Harder)](test/set2/break_ecb_harder_test.clj)
    - [x] [PKCS#7 padding validation](test/set2/validate_padding_test.clj)
-   - [ ] CBC bitflipping attacks
+   - [x] [CBC bitflipping attacks](test/set2/cbc_attack_test.clj)
 * Set 3
 * Set 4
 * Set 5

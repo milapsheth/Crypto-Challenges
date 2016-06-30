@@ -138,7 +138,7 @@
                 (apply interleave' (map rest lsts))))))
 
 
-(defn subseq
+(defn subseq'
   "Get subsequence starting at idx taking n elements"
   [lst idx n]
   (take n (drop idx lst)))
