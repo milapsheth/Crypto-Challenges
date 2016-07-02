@@ -12,7 +12,7 @@
   (aes/encrypt (concat plaintext unknown-string) random-cipher-key :ecb))
 
 
-(deftest ^:parallel break-ecb-basic-test
+(deftest break-ecb-basic-test
   (testing "Failed to break ECB mode on sample string"
     (let [unknown-string (map int "UNKNOWN STRING")]
       (is (= unknown-string

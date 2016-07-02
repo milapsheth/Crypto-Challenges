@@ -140,5 +140,5 @@
 
 (defn subseq'
   "Get subsequence starting at idx taking n elements"
-  [lst idx n]
-  (take n (drop idx lst)))
+  ([lst n] (take n lst))
+  ([lst idx n] (take n (drop idx lst))))

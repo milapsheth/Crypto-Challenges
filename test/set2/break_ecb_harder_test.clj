@@ -14,9 +14,9 @@
 (defn oracle-encrypt
   [plaintext unknown-string]
   (aes/encrypt (concat random-prefix plaintext unknown-string) random-cipher-key :ecb))
-;; (def unknown-string (map int "UNKNOWN STRING"))
 
-(deftest ^:parallel break-ecb-basic-test
+
+(deftest break-ecb-basic-test
   (testing "Failed to break ECB mode on sample string"
     (let [unknown-string (map int "MY UNKNOWN STRING")]
       (is (= unknown-string

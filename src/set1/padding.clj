@@ -14,16 +14,15 @@
 (defn- pkcs7-remove-padding
   "PKCS#7 remove padding from text"
   [padded-text block-size]
-  (let [[unpad-text last-block] (split-at (- (count padded-text) block-size)
-                                          padded-text)]
-    (concat unpad-text (take (- block-size (last last-block))
-                             last-block))))
+  (let [num-padded-bytes (last padded-text)]
+    (drop-last num-padded-bytes padded-text)))
 
 (defn- validate-pkcs7
   "Validate PKCS#7 padding"
   [text block-size]
   (let [padded-elem (last text)]
-    (and (not= padded-elem 0)
+    (and (> padded-elem 0)
+         (<= padded-elem block-size)
          (every? #(= % padded-elem) (take-last padded-elem text)))))
 
 
@@ -35,15 +34,20 @@
    plaintext block-size))
 
 
-(defn unpad-plaintext
-  "Remove padded bytes from decrypted plaintext"
-  [padded-text block-size mode]
-  (({:pkcs7 pkcs7-remove-padding} mode)
-   padded-text block-size))
-
-
 (defn validate-padding
   "Validate padded text under given mode"
   [padded-text block-size mode]
   (({:pkcs7 validate-pkcs7} mode)
    padded-text block-size))
+
+
+(defn unpad-plaintext
+  "Remove padded bytes from decrypted plaintext"
+  [padded-text block-size mode]
+  (when-not (validate-padding padded-text block-size :pkcs7)
+    (throw (Exception. "Invalid padding")))
+  
+  (({:pkcs7 pkcs7-remove-padding} mode)
+   padded-text block-size))
+
+
