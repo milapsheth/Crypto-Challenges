@@ -27,7 +27,7 @@ Run `lein parallel-test` to run all challenges.
    - [x] [PKCS#7 padding validation](test/set2/validate_padding_test.clj)
    - [x] [CBC bitflipping attacks](test/set2/cbc_attack_test.clj)
 * Set 3
-   - [ ] The CBC padding oracle
+   - [x] [The CBC padding oracle](test/set3/cbc_padding_oracle_test.clj)
    - [ ] Implement CTR, the stream cipher mode
    - [ ] Break fixed-nonce CTR mode using substitutions
    - [ ] Break fixed-nonce CTR statistically
