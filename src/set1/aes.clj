@@ -1,7 +1,9 @@
 (ns set1.aes
   (:require [set1.aes-constants :as c]
             [set1.padding :refer [pad-plaintext unpad-plaintext]]
-            [util.conv :as u]))
+            [util.conv :as u]
+            [clojure.core.reducers :as par]
+            [util.random :as rand]))
 
 
 ;; AES algorithm description
@@ -193,31 +195,42 @@
 
 ;; Modes of Encryption
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ECB mode (this is the shitty one)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn encrypt-ecb
   "Encrypt input with AES.
   Padding is done for input if required"
   [plaintext cipher-key]
-  (def key-size (count cipher-key))
 
-  (def padded-plaintext (pad-plaintext plaintext c/BLOCK-SIZE :pkcs7))
-  
-  (mapcat #(aes-encrypt % cipher-key key-size)
-          (partition c/BLOCK-SIZE c/BLOCK-SIZE 0 padded-plaintext)))
+  (let [key-size (count cipher-key)
+        padded-plaintext (pad-plaintext plaintext c/BLOCK-SIZE :pkcs7)]
+    (->> padded-plaintext
+         (u/partition' c/BLOCK-SIZE)
+         (par/map #(aes-encrypt % cipher-key key-size))
+         par/foldcat
+         (apply concat))))
 
 
 (defn decrypt-ecb
   "Decrypt input with AES.
   Padding is done for input if required"
   [ciphertext cipher-key]
-  (def key-size (count cipher-key))
 
-  (-> (mapcat #(aes-decrypt % cipher-key key-size)
-              (partition c/BLOCK-SIZE c/BLOCK-SIZE (repeat 0) ciphertext))
-      (unpad-plaintext c/BLOCK-SIZE :pkcs7)))
+  (let [key-size (count cipher-key)]
+    (-> (->> ciphertext
+             (u/partition' c/BLOCK-SIZE)
+             (par/map #(aes-decrypt % cipher-key key-size))
+             par/foldcat
+             (apply concat))
+        (unpad-plaintext c/BLOCK-SIZE :pkcs7))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; CBC mode of operation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn encrypt-cbc
   "Encrypt plaintext using AES under CBC mode"
   [plaintext cipher-key iv]
@@ -259,7 +272,50 @@
                  (cons decrypted-block plaintext)))))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CTR mode of operation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn long->bytes
+  "Encode long as bytes"
+  [num]
+  (when-not (zero? (bit-shift-right num 63))
+    (throw (Exception. "Number exceeds 64 bit length")))
+  
+  (loop [n num
+         i 0
+         acc nil]
+    (if (zero? n)
+      (concat (repeat (- 8 i) 0)
+              acc)
+      (recur (quot n 256)
+             (inc i)
+             (conj acc (rem n 256))))))
+
+
+(defn encrypt-ctr
+  "Encrypt using AES under CTR mode of operation"
+  [plaintext cipher-key nonce]
+  (let [key-size (count cipher-key)]
+    (->> plaintext
+         (u/partition' c/BLOCK-SIZE)
+         (zipmap (range))
+         (map #(u/xor (concat nonce (long->bytes (key %)))
+                      (aes-encrypt (val %) cipher-key key-size)))
+         #_ par/foldcat
+         (apply concat))))
+
+
+(defn decrypt-ctr
+  "Decrypt using AES under CTR mode of operation"
+  [ciphertext cipher-key nonce]
+  (encrypt-ctr ciphertext cipher-key nonce))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Generic AES encryption/decryption functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn encrypt
   "Encrypts plaintext using AES under given mode"
@@ -277,7 +333,7 @@
   "Decrypts ciphertext using AES under given mode"
   [ciphertext cipher-key mode & args]
 
-  (when-not (c/possible-key-size? (count cipher-key))
+  (when-not (and (c/possible-key-size? (count cipher-key)))
     (throw (Exception. "Invalid key length")))
   
   (let [functions {:ecb decrypt-ecb, :cbc decrypt-cbc}]

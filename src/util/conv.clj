@@ -112,7 +112,7 @@
 (defn partition'
   "Translates to (partition block-size block-size lst)"
   [block-size lst]
-  (partition block-size block-size lst))
+  (partition block-size block-size nil lst))
 
 (defn option-map'
   "Maps a function on a seq but removes results that return nil"
