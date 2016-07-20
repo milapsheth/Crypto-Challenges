@@ -1,13 +1,12 @@
 (ns set1.detect-xor
-  (:require [util.conv :refer :all]
+  (:require [clojure.java.io :as io]
             [clojure.string :as s]
             [set1.xor-cipher :as x]
-            [clojure.java.io :as io]))
-
+            [util.tools :refer :all]))
 
 (defn decrypt
   [data]
-  (clojure.string/join (map char (x/decrypt-caesar (map int (hexstr-to-str data))))))
+  (clojure.string/join (map char (x/decrypt-caesar (map int (hexstr->str data))))))
 
 
 (defn detect-encrypted
@@ -19,7 +18,7 @@
          decrypted-match '()]
     (if (empty? lines)
       (s/join decrypted-match)
-      (let [data (hexstr-to-str (first lines))
+      (let [data (hexstr->str (first lines))
             new-match (decrypt (first lines))
             new-score (x/score-match (seq new-match))]
         (recur (rest lines)

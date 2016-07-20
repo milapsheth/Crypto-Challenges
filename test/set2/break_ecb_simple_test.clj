@@ -1,9 +1,9 @@
 (ns set2.break-ecb-simple-test
-  (:require [set2.break-ecb-simple :as sut]
-            [clojure.test :refer :all]
-            [set1.aes :as aes]
-            [util.conv :as u]))
-
+  (:require [clojure.test :refer :all]
+            [set2.break-ecb-simple :as sut]
+            [util
+             [aes :as aes]
+             [tools :as u]]))
 
 (def random-cipher-key (repeatedly 16 #(rand-int 256)))
 

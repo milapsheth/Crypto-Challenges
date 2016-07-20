@@ -1,9 +1,9 @@
 (ns set3.cbc-padding-oracle
-  (:require [set1.aes :as aes]
-            [util.conv :as u]
-            [util.random :as rand]
-            [set1.padding :as padding]))
-
+  (:require [util
+             [aes :as aes]
+             [padding :as padding]
+             [random :as rand]
+             [tools :as u]]))
 
 (defn find-last-byte
   "Find the last byte of plaintext."

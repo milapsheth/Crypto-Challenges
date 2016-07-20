@@ -1,12 +1,11 @@
 (ns set2.cbc-attack-test
-  (:require [set2.cbc-attack :as sut]
-            [clojure.test :refer :all]
-            [util.conv :as u]))
-
+  (:require [clojure.test :refer :all]
+            [set2.cbc-attack :as sut]
+            [util.tools :as u]))
 
 (defn oracle-encrypt
   [text]
-  (sut/encrypt-cookie (u/bytes-to-str text)))
+  (sut/encrypt-cookie (u/bytes->str text)))
 
 (defn is-admin?
   [cookie]

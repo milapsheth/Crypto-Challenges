@@ -1,10 +1,10 @@
 (ns set2.break-ecb-harder-test
-  (:require [set2.break-ecb-harder :as sut]
-            [clojure.test :refer :all]
-            [set1.aes :as aes]
-            [util.conv :as u]
-            [util.random :as rand]))
-
+  (:require [clojure.test :refer :all]
+            [set2.break-ecb-harder :as sut]
+            [util
+             [aes :as aes]
+             [random :as rand]
+             [tools :as u]]))
 
 (def random-cipher-key (rand/byte-lst 16))
 

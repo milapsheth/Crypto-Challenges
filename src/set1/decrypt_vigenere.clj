@@ -1,9 +1,8 @@
 (ns set1.decrypt-vigenere
-  (:require [util.conv :as u]
+  (:require [clojure.java.io :as io]
             [clojure.string :as s]
             [set1.xor-cipher :as x]
-            [clojure.java.io :as io]))
-
+            [util.tools :as u]))
 
 (def MAX-KEY-LEN 40)
 
@@ -55,7 +54,7 @@
       (let [[key-len cipher-score] (first keys)]
         (recur (rest keys)
                (cons (apply u/interleave' (map #(x/decrypt-caesar
-                                               (take-nth key-len (drop % cipher)))
+                                                 (take-nth key-len (drop % cipher)))
                                              (range key-len)))
                      acc))))))
 

@@ -1,6 +1,5 @@
 (ns set1.detect-aes
-  (:require [set1.aes-constants :as constants]))
-
+  (:require [util.aes-constants :as constants]))
 
 (defn detect-aes
   [ciphers]

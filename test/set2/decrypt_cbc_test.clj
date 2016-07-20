@@ -1,10 +1,10 @@
 (ns set2.decrypt-cbc-test
-  (:require [clojure.test :refer :all]
-            [set1.aes :as aes]
-            [clojure.java.io :as io]
-            [util.conv :as u]
-            [util.random :as r]))
-
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer :all]
+            [util
+             [aes :as aes]
+             [random :as r]
+             [tools :as u]]))
 
 (def ciphertext (with-open [rdr (io/reader (io/file (io/resource "set2/decrypt_cbc_ciphertext.txt")))]
                   (u/base64-to-byte' (apply concat (line-seq rdr)))))
@@ -18,7 +18,7 @@
 (deftest decrypt-cbc-test
   (testing "Failed challenge: decryption of CBC ciphertext"
     (is (= plaintext
-           (u/bytes-to-str (aes/decrypt ciphertext cipher-key :cbc iv))))))
+           (u/bytes->str (aes/decrypt ciphertext cipher-key :cbc iv))))))
 
 (deftest aes-cbc-test 
   (testing "Testing CBC mode encryption"
@@ -29,7 +29,7 @@
       (is (= plaintext
              (-> (aes/encrypt (map int plaintext) cipher-key :cbc iv)
                  (aes/decrypt cipher-key :cbc iv)
-                 (u/bytes-to-str)))))))
+                 (u/bytes->str)))))))
 
 (deftest aes-cbc-test2
   (testing "Testing CBC mode encryption"

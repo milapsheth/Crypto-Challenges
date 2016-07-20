@@ -1,13 +1,12 @@
 (ns set1.xor-cipher-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer :all]
             [set1.xor-cipher :refer [decrypt-caesar encrypt-caesar]]
-            [util.conv :as u]
-            [clojure.java.io :as io]))
-
+            [util.tools :as u]))
 
 (defn decrypt
   [data]
-  (clojure.string/join (map char (decrypt-caesar (map int (u/hexstr-to-str data))))))
+  (clojure.string/join (map char (decrypt-caesar (map int (u/hexstr->str data))))))
 
 (def plaintext "Cooking MC's like a pound of bacon")
 

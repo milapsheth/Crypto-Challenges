@@ -1,7 +1,8 @@
 (ns set1.xor-cipher
   (:require [set1.fixed-xor :refer :all]
-            [util.conv :refer :all]))
-
+            [util.tools :refer :all]
+            [util.math :as math]
+            [util.tools :as u]))
 
 ;; Challenge 3
 
@@ -38,7 +39,7 @@
   [match]
   (let [len (count match)
         char-count (reduce #(update %1 (char %2) (fnil inc 0)) {} match)]
-    (reduce #(+ %1 (sqr (- (get char-freq-map (down-case (key %2)) UNCOMMON-CHAR-WEIGHT)
+    (reduce #(+ %1 (math/sqr (- (get char-freq-map (down-case (key %2)) UNCOMMON-CHAR-WEIGHT)
                            (/ (* 1000 (val %2)) len))))
             0 char-count)))
 
@@ -52,17 +53,17 @@
   (map #(bit-xor % cipher-key) plaintext))
 
 
-;; Input hex string "1b4f36a" -> decrypted ascii
+;; Input byte list -> decrypted ascii
 (defn brute-force
   "Brute force through all rotations and output the one with best score"
-  [cdata]
-  (def data (map int (hexstr-to-str cdata)))
+  [data]
+
   (loop [score MAX-INT
-         matched-data (map char data)
+         matched-data data
          nums (range 256)]
 
     (if (empty? nums)
-      (clojure.string/join matched-data)
+      matched-data
       (let [match (encrypt-caesar data (first nums))
             new-score (score-match match)]
         (recur (if (< new-score score) new-score score)

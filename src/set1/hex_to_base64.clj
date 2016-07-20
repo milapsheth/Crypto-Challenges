@@ -1,6 +1,5 @@
 (ns set1.hex-to-base64
-  (:require [util.conv :refer [hex-to-int]]))
-
+  (:require [util.tools :refer [hex->int]]))
 
 ;; CHALLENGE 1
 
@@ -51,7 +50,7 @@
 (defn pad-input
   [inp]
   (map (fn [bits] (reduce #(+ (bit-shift-left %1 4) %2) 0 bits))
-       (partition HEX_PER_BLOCK HEX_PER_BLOCK 0 (map hex-to-int (seq inp)))))
+       (partition HEX_PER_BLOCK HEX_PER_BLOCK 0 (map hex->int (seq inp)))))
 
 (defn encode
   [data]

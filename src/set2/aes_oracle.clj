@@ -1,7 +1,8 @@
 (ns set2.aes-oracle
-  (:require [set1.aes :as aes]
-            [set1.detect-aes :as detect]
-            [util.random :as rand]))
+  (:require [set1.detect-aes :as detect]
+            [util
+             [aes :as aes]
+             [random :as rand]]))
 
 (defn encrypt
   "Oracle encryption function.

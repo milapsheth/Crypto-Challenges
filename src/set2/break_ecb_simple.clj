@@ -1,7 +1,6 @@
 (ns set2.break-ecb-simple
-  (:require [set1.aes :as aes]
-            [set2.aes-oracle :refer [detect-mode]]))
-
+  (:require [set2.aes-oracle :refer [detect-mode]]
+            [util.aes :as aes]))
 
 (def MAX-BLOCK-SIZE 32)
 

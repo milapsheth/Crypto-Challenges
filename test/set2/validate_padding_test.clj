@@ -1,7 +1,6 @@
 (ns set2.validate-padding-test
   (:require [clojure.test :refer :all]
-            [set1.padding :as sut]))
-
+            [util.padding :as sut]))
 
 ;; Write a function that takes a plaintext, determines if it has valid PKCS#7 padding, and strips the padding off.
 

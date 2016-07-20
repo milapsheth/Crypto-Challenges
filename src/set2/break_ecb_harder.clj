@@ -1,10 +1,11 @@
 (ns set2.break-ecb-harder
-  (:require [set1.aes :as aes]
-            [set2.break-ecb-simple :as ecb]
-            [clojure.string :as str]
-            [util.conv :as u]
-            [set2.aes-oracle :as oracle]))
-
+  (:require [clojure.string :as str]
+            [set2
+             [aes-oracle :as oracle]
+             [break-ecb-simple :as ecb]]
+            [util
+             [aes :as aes]
+             [tools :as u]]))
 
 (defn get-equal-block-index
   "Return the index of the first consecutive equal blocks"

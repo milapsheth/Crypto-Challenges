@@ -1,10 +1,10 @@
 (ns set3.cbc-padding-oracle-test
-  (:require [set3.cbc-padding-oracle :as sut]
-            [clojure.test :refer :all]
-            [util.random :as rand]
-            [set1.aes :as aes]
-            [util.conv :as u]))
-
+  (:require [clojure.test :refer :all]
+            [set3.cbc-padding-oracle :as sut]
+            [util
+             [aes :as aes]
+             [random :as rand]
+             [tools :as u]]))
 
 ;; The CBC padding oracle
 

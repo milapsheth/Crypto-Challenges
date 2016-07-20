@@ -1,9 +1,9 @@
 (ns set2.profile-parser
   (:require [clojure.string :as str]
-            [util.random :as rand]
-            [set1.aes :as aes]
-            [util.conv :as u]))
-
+            [util
+             [aes :as aes]
+             [random :as rand]
+             [tools :as u]]))
 
 (defn parse-profile
   "Show profile in human-readable form"
@@ -27,7 +27,7 @@
   "Encrypt user profile using AES(ECB)"
   [profile]
   (-> (encode-profile profile)
-      (u/str-to-bytes)
+      (u/str->bytes)
       (aes/encrypt random-cipher-key :ecb)))
 
 
@@ -35,5 +35,5 @@
   "Decrypt user profile encrypted using AES(ECB)"
   [encrypted-profile]
   (-> (aes/decrypt encrypted-profile random-cipher-key :ecb)
-      (u/bytes-to-str)
+      (u/bytes->str)
       (parse-profile)))

@@ -1,10 +1,11 @@
 (ns set1.decrypt-ecb-test
-  (:require [set1.aes :as aes]
+  (:require [clojure
+             [string :as str]
+             [test :refer :all]]
             [clojure.java.io :as io]
-            [clojure.test :refer :all]
-            [util.conv :as u]
-            [clojure.string :as str]))
-
+            [util
+             [aes :as aes]
+             [tools :as u]]))
 
 (def cipher-key (map int "YELLOW SUBMARINE"))
 
@@ -16,7 +17,7 @@
 
 (defn decrypt-ecb
   [cipher]
-  (u/bytes-to-str (aes/decrypt cipher cipher-key :ecb)))
+  (u/bytes->str (aes/decrypt cipher cipher-key :ecb)))
 
 
 (deftest decrypt-ecb-test

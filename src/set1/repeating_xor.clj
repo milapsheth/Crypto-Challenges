@@ -1,6 +1,5 @@
 (ns set1.repeating-xor
-  (:require [util.conv :refer :all]))
-
+  (:require [util.tools :refer :all]))
 
 ;; byte[] -> byte[] -> byte[]
 (defn encrypt

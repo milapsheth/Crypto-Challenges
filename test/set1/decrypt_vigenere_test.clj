@@ -1,11 +1,12 @@
 (ns set1.decrypt-vigenere-test
-  (:require [clojure.test :refer :all]
-            [set1.decrypt-vigenere :refer [decrypt-vigenere]]
-            [set1.repeating-xor :as v]
-            [clojure.java.io :as io]
-            [util.conv :as u]
-            [util.random :as random]))
-
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer :all]
+            [set1
+             [decrypt-vigenere :refer [decrypt-vigenere]]
+             [repeating-xor :as v]]
+            [util
+             [random :as random]
+             [tools :as u]]))
 
 (defn decrypt-cipher
   [ciphertext]

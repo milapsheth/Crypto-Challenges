@@ -1,30 +1,60 @@
-(ns util.conv
+(ns util.tools
   (:require [clojure.string :as s]
             [clojure.string :as str]))
+
+
+;; Bit-shift shorthands
+(defn << [x a] (bit-shift-left x a))
+
+(defn >> [x a] (bit-shift-right x a))
+
+(defn |
+  "Bit-or shorthand"
+  ([x y] (bit-or x y))
+  ([x y & z] (apply bit-or x y z)))
+
+(defn &
+  "Bit-and shorthand"
+  ([x y] (bit-and x y))
+  ([x y & z] (apply bit-and x y z)))
+
+(defn !
+  "Bit-xor shorthand"
+  ([x y] (bit-xor x y))
+  ([x y & z] (apply bit-xor x y z)))
+
+
+(defn divides?
+  "Check if y divides x"
+  [x y]
+  (zero? (rem x y)))
+
+(defn divides-not?
+  "Check if y doesn't divide x"
+  [x y]
+  (not (zero? (rem x y))))
 
 
 (defn xor
   ([data1 data2] (map #(bit-xor %1 %2) data1 data2))
   ([data1 data2 & rst] (map #(apply bit-xor %) (apply map vector (cons data1 (cons data2 rst))))))
 
-(defn hex-to-int
+(defn hex->int
   [ch]
   (let [c (int ch)]
     (if (< c 97)
       (- c 48)
       (- c 87))))
 
-(defn int-to-hex
+(defn int->hex
   [c]
   (char (+ c (if (< c 10) 48 87))))
 
-(defn sqr [n] (* n n))
-
 (def MAX-INT (bit-shift-left 1 48))
 
-(defn hexstr-to-str
+(defn hexstr->str
   [data]
-  (mapv #(char (+ (bit-shift-left (hex-to-int (first %)) 4) (hex-to-int (second %))))
+  (mapv #(char (+ (bit-shift-left (hex->int (first %)) 4) (hex->int (second %))))
         (partition 2 2 0 (seq data))))
 
 (defn down-case
@@ -34,30 +64,21 @@
       (char (+ ch 32))
       c)))
 
-(defn str-to-lst
+(defn str->lst
   [data]
-  (mapv hex-to-int (seq data)))
+  (map hex->int (seq data)))
 
-(defn lst-to-str [data] (clojure.string/join (map int-to-hex data)))
+(defn lst->str [data] (clojure.string/join (map int->hex data)))
 
-(defn bytes-to-str [data] (clojure.string/join (map char data)))
+;; Conversion between byte arrays and ASCII strings
+(defn bytes->str [data] (clojure.string/join (map char data)))
 
-(defn str-to-bytes [data] (map int data))
-
-(defn reduce'
-  [f b l & coll]
-  (if (empty? l)
-    b
-    (loop [lst (apply map vector (cons l coll))
-           acc b]
-      (if (empty? lst)
-        acc
-        (recur (rest lst) (apply f acc (first lst)))))))
+(defn str->bytes [data] (map int data))
 
 
 ;; Base 64 to byte array
 
-(defn base64-to-bits
+(defn- base64-to-bits
   [ch]
   (let [c (int ch)]
     (cond
@@ -68,7 +89,7 @@
       (= c 47) 63
       (= c 61) 0)))
 
-(defn transform-block
+(defn- transform-block
   [block]
   (loop [block (reduce #(+ %2 (bit-shift-left %1 6)) block)
          n 3
@@ -80,7 +101,7 @@
              (cons (bit-and block 255) acc)))))
 
 
-(defn decode-base64-block
+(defn- decode-base64-block
   [block]
   (transform-block block))
 
@@ -107,7 +128,17 @@
 (defn find-seq
   "Find the index where val starts from in lst"
   [lst val]
-  (str/index-of (bytes-to-str lst) (bytes-to-str val)))
+  (str/index-of (bytes->str lst) (bytes->str val)))
+
+(defn reduce'
+  [f b l & coll]
+  (if (empty? l)
+    b
+    (loop [lst (apply map vector (cons l coll))
+           acc b]
+      (if (empty? lst)
+        acc
+        (recur (rest lst) (apply f acc (first lst)))))))
 
 (defn partition'
   "Translates to (partition block-size block-size lst)"
@@ -142,3 +173,14 @@
   "Get subsequence starting at idx taking n elements"
   ([lst n] (take n lst))
   ([lst idx n] (take n (drop idx lst))))
+
+
+(defn gen-reduce
+  "Generic reducer. Takes in reducing function and optional end condition."
+  [f base taker reducer end? value]
+  (loop [val value
+         acc base]
+    (if (end? val)
+      acc
+      (recur (reducer val)
+             (f acc (taker val))))))

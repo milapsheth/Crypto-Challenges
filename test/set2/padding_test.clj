@@ -1,6 +1,6 @@
 (ns set2.padding-test
-  (:require [set1.padding :refer :all]
-            [clojure.test :refer :all]))
+  (:require [clojure.test :refer :all]
+            [util.padding :refer :all]))
 
 (def plaintext (seq "YELLOW SUBMARINE"))
 

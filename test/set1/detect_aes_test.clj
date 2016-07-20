@@ -1,9 +1,8 @@
 (ns set1.detect-aes-test
-  (:require [set1.detect-aes :as sut]
+  (:require [clojure.java.io :as io]
             [clojure.test :refer :all]
-            [clojure.java.io :as io]
-            [util.conv :as u]))
-
+            [set1.detect-aes :as sut]
+            [util.tools :as u]))
 
 (def ciphertexts (with-open [rdr (io/reader (io/file (io/resource "set1/detect_aes.txt")))]
                    (doall (map u/base64-to-byte' (line-seq rdr)))))

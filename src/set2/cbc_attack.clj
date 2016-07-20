@@ -1,12 +1,13 @@
 (ns set2.cbc-attack
-  (:require [set1.aes :as aes]
-            [util.random :as rand]
-            [clojure.string :as str]
-            [set2.break-ecb-harder :as break-ecb]
-            [set2.break-ecb-simple :refer [find-suffix-len find-block-size]]
-            [set2.aes-oracle :as oracle]
-            [util.conv :as u]))
-
+  (:require [clojure.string :as str]
+            [set2
+             [aes-oracle :as oracle]
+             [break-ecb-harder :as break-ecb]
+             [break-ecb-simple :refer [find-block-size find-suffix-len]]]
+            [util
+             [aes :as aes]
+             [random :as rand]
+             [tools :as u]]))
 
 (def random-cipher-key (rand/byte-lst 16))
 
@@ -27,7 +28,7 @@
 
 (defn decrypt-cookie
   [ciphertext]
-  (u/bytes-to-str (aes/decrypt ciphertext random-cipher-key :cbc random-iv)))
+  (u/bytes->str (aes/decrypt ciphertext random-cipher-key :cbc random-iv)))
 
 
 (defn parse-cookie
