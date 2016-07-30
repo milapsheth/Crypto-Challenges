@@ -132,8 +132,7 @@
 (defn create-round-key
   "Create a round key.
   Creates a round key from the given expanded key and the
-  position within the expanded key.
-  "
+  position within the expanded key."
   [expanded-key round-key-pointer]
   (apply map vector
          (partition 4 4 (subvec expanded-key round-key-pointer (+ round-key-pointer 16)))))
