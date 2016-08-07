@@ -106,8 +106,8 @@
     (is (= (set strings)
            (decrypt-all-strings)))))
 
-
-(deftest cbc-padding-oracle-basic-test
+#_
+(deftest ^:parallel cbc-padding-oracle-basic-test
   (testing "Failed to mount basic padding oracle attack on CBC"
     (let [plaintext (rand/byte-lst 35)
           cipher-key (rand/byte-lst 16)
