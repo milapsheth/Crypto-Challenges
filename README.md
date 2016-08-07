@@ -28,15 +28,31 @@ Run `lein parallel-test` to run all challenges.
    - [x] [CBC bitflipping attacks](test/set2/cbc_attack_test.clj)
 * Set 3
    - [x] [The CBC padding oracle](test/set3/cbc_padding_oracle_test.clj)
-   - [ ] Implement CTR, the stream cipher mode
-   - [ ] Break fixed-nonce CTR mode using substitutions
-   - [ ] Break fixed-nonce CTR statistically
-   - [ ] Implement the MT19937 Mersenne Twister RNG
+   - [x] [Implement CTR, the stream cipher mode](test/set3/decrypt_ctr_test.clj)
+   - [x] [Break fixed-nonce CTR mode using substitutions](test/set3/break_ctr_test.clj)
+   - [x] [Break fixed-nonce CTR statistically](test/set3/break_ctr_test.clj)
+   - [x] [Implement the MT19937 Mersenne Twister RNG](src/util/mersenne_twister.clj)
    - [ ] Crack an MT19937 seed
-   - [ ] Clone an MT19937 RNG from its output
+   - [x] [Clone an MT19937 RNG from its output](test/set3/break_mt.clj)
    - [ ] Create the MT19937 stream cipher and break it
 * Set 4
+   - [x] [Break "random access read/write" AES CTR](test/set4/break_edit_ctr.clj)
+   - [x] [CTR bitflipping](test/set4/break_ctr_bitflip.clj)
+   - [ ] Recover the key from CBC with IV=Key
+   - [x] [Implement a SHA-1 keyed MAC](test/set4/sha1_test.clj)
+   - [x] [Break a SHA-1 keyed MAC using length extension](test/set4/sha1_length_ext_test.clj)
+   - [ ] Break an MD4 keyed MAC using length extension
+   - [ ] Implement and break HMAC-SHA1 with an artificial timing leak
+   - [ ] Break HMAC-SHA1 with a slightly less artificial timing leak
 * Set 5
+   - [x] [Implement Diffie-Hellman](test/set5_dh_test.clj)
+   - [ ] Implement a MITM key-fixing attack on Diffie-Hellman with parameter injection
+   - [ ] Implement DH with negotiated groups, and break with malicious "g" parameters
+   - [ ] Implement Secure Remote Password (SRP)
+   - [ ] Break SRP with a zero key
+   - [ ] Offline dictionary attack on simplified SRP
+   - [ ] Implement RSA
+   - [ ] Implement an E=3 RSA Broadcast attack
 * Set 6
 * Set 7
 * Set 8
