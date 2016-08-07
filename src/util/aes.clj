@@ -91,7 +91,6 @@
     (map-indexed #(concat (drop (idx %1) %2) (take (idx %1) %2)) state)))
 
 ;; Mix columns step
-
 (defn galois-mult
   "Multiplication of 8-bit ints in a galois field"
   [x y]
@@ -243,7 +242,9 @@
       (if (empty? padded-text)
         (apply concat (reverse ciphertext))
 
-        (let [encrypted-block (aes-encrypt (u/xor (first padded-text) encrypted-block) cipher-key key-size)]
+        (let [encrypted-block (-> (first padded-text)
+                                  (u/xor encrypted-block)
+                                  (aes-encrypt cipher-key key-size))]
           (recur (rest padded-text)
                  encrypted-block
                  (cons encrypted-block ciphertext)))))))
@@ -276,23 +277,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn long->bytes
-  "Encode long as bytes"
-  [num]
-  (when-not (zero? (bit-shift-right num 63))
-    (throw (Exception. "Number exceeds 64 bit length")))
-  
-  (loop [n num
-         i 0
-         acc []]
-    (if (zero? n)
-      (concat acc
-              (repeat (- 8 i) 0))
-      (recur (quot n 256)
-             (inc i)
-             (conj acc (rem n 256))))))
-
-
 (defn encrypt-ctr
   "Encrypt using AES under CTR mode of operation"
   [plaintext cipher-key nonce]
@@ -301,7 +285,7 @@
   (let [key-size (count cipher-key)]
     (->> plaintext
          (u/partition' c/BLOCK-SIZE)
-         (map #(u/xor (aes-encrypt (concat nonce (long->bytes %1))
+         (map #(u/xor (aes-encrypt (concat nonce (u/long->bytes %1))
                                    cipher-key key-size)
                       %2)
               (range))
