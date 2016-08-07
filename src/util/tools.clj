@@ -1,6 +1,5 @@
 (ns util.tools
-  (:require [clojure.string :as s]
-            [clojure.string :as str]))
+  (:require [clojure.string :as str]))
 
 
 ;; Bit-shift shorthands
@@ -49,6 +48,59 @@
 (defn int->hex
   [c]
   (char (+ c (if (< c 10) 48 87))))
+
+
+(defn long->bytes
+  "Encode long as bytes"
+  ([num] (long->bytes num :little))
+  ([num endianess]
+   (when-not (< num 0xFFFFFFFFFFFFFFFF)
+     (throw (Exception. (str "Number exceeds MAX-LONG: " num))))
+
+   (reduce #(conj %1 (& (>> num %2) 0xff))
+           (if (= endianess :big) '() [])
+           (map #(* % 8) (range 8)))))
+
+(defn bytes->long
+  "Decode bytes into long"
+  ([bytes] (bytes->long bytes :little))
+  ([bytes endianess]
+   (when-not (= 8 (count bytes))
+     (throw (Exception. "Byte lst should have length 8")))
+
+   (reduce #(+ (<< %1 8) %2) 0 (if (= endianess :big) (reverse bytes) bytes))))
+
+
+(defn bytes->int
+  "Decode bytes into int"
+  ([bytes] (bytes->int bytes :little))
+  ([bytes endianess]
+   (when-not (= 4 (count bytes))
+     (throw (Exception. "Byte lst should have length 4")))
+
+   (reduce #(+ (<< %1 8) %2) 0 (if (= endianess :big) (reverse bytes) bytes))))
+
+
+(defn int->bytes
+  "Encode int as bytes"
+  ([num] (int->bytes num :little))
+  ([num endianess]
+   (when-not (< num 0xFFFFFFFF)
+     (throw (Exception. (str "Number exceeds MAX-INT: " num))))
+
+   (reduce #(conj %1 (& (>> num %2) 0xff))
+           (if (= endianess :big) '() [])
+           (map #(* % 8) (range 4)))))
+
+(defn bytes->int
+  "Decode bytes into int"
+  ([bytes] (bytes->int bytes :little))
+  ([bytes endianess]
+   (when-not (= 4 (count bytes))
+     (throw (Exception. "Byte lst should have length 4")))
+
+   (reduce #(+ (<< %1 8) %2) 0 (if (= endianess :big) bytes (reverse bytes)))))
+
 
 (def MAX-INT (bit-shift-left 1 48))
 
