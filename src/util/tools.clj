@@ -68,17 +68,7 @@
    (when-not (= 8 (count bytes))
      (throw (Exception. "Byte lst should have length 8")))
 
-   (reduce #(+ (<< %1 8) %2) 0 (if (= endianess :big) (reverse bytes) bytes))))
-
-
-(defn bytes->int
-  "Decode bytes into int"
-  ([bytes] (bytes->int bytes :little))
-  ([bytes endianess]
-   (when-not (= 4 (count bytes))
-     (throw (Exception. "Byte lst should have length 4")))
-
-   (reduce #(+ (<< %1 8) %2) 0 (if (= endianess :big) (reverse bytes) bytes))))
+   (reduce #(+ (<< %1 8) %2) 0 (if (= endianess :big) bytes (reverse bytes)))))
 
 
 (defn int->bytes

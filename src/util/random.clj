@@ -17,3 +17,8 @@
 
 (defn byte-lst [n]
   (repeatedly n #(rand-int 256)))
+
+(defn rand-long
+  "Returns a random long value between 0 to n"
+  [n]
+  (long (rand n)))
