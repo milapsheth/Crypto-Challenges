@@ -1,5 +1,6 @@
 (ns util.math)
 
+(def MAX-INT32 0x7FFFFFFF)
 
 (defn sqr "Square number" [x] (*' x x))
 
@@ -21,8 +22,11 @@
   ([x y modulus]
    (when (< y 0)
      (throw (Exception. "Power cannot be negative")))
-   (loop [ans 1N
-          base (bigint x)
+   (loop [ans 1
+          base (bigint x) #_(if (or (> x MAX-INT32)
+                       (> modulus MAX-INT32))
+                 (bigint x)
+                 x)
           e y]
      (if (zero? e)
        ans
