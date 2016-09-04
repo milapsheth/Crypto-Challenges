@@ -45,7 +45,7 @@ Run `lein parallel-test` to run all challenges.
    - [ ] Implement and break HMAC-SHA1 with an artificial timing leak
    - [ ] Break HMAC-SHA1 with a slightly less artificial timing leak
 * Set 5
-   - [x] [Implement Diffie-Hellman](test/set5_dh_test.clj)
+   - [x] [Implement Diffie-Hellman](test/set5/dh_test.clj)
    - [ ] Implement a MITM key-fixing attack on Diffie-Hellman with parameter injection
    - [ ] Implement DH with negotiated groups, and break with malicious "g" parameters
    - [ ] Implement Secure Remote Password (SRP)
