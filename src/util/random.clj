@@ -22,3 +22,8 @@
   "Returns a random long value between 0 to n"
   [n]
   (long (rand n)))
+
+(defn num
+  ([] (rand-int Integer/MAX_VALUE))
+  ([n] (rand-int n))
+  ([a b] (+ a (rand-int (- b a)))))
