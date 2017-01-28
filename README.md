@@ -42,7 +42,7 @@ Run `lein parallel-test` to run all challenges.
    - [x] [Implement a SHA-1 keyed MAC](test/set4/sha1_test.clj)
    - [x] [Break a SHA-1 keyed MAC using length extension](test/set4/sha1_length_ext_test.clj)
    - [ ] Break an MD4 keyed MAC using length extension
-   - [ ] Implement and break HMAC-SHA1 with an artificial timing leak
+   - [x] [Implement and break HMAC-SHA1 with an artificial timing leak](test/set4/hmac_timing_attack_test.clj)
    - [ ] Break HMAC-SHA1 with a slightly less artificial timing leak
 * Set 5
    - [x] [Implement Diffie-Hellman](test/set5/dh_test.clj)
