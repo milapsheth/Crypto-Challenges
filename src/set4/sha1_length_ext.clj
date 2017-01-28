@@ -13,7 +13,7 @@
                        (#(drop keylen %))
                        (concat new-msg))]
     [forged-msg
-     (sha1/hash new-msg msg-hash-init (+ keylen (count forged-msg)))]))
+     (sha1/sha1 new-msg msg-hash-init (+ keylen (count forged-msg)))]))
 
 
 (defn forge-hash

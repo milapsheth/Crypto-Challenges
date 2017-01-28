@@ -98,17 +98,14 @@
            (repeat (mod (- 55 (count msg)) 64) 0)
            (u/long->bytes (* 8 len) :big))))
 
+
 (defn transform-into-hash
   [h]
-  (mapcat #(u/int->bytes % :big) #_(fn [x]
-            (reduce #(conj %1 (& (>> x %2) 0xff))
-                    '()
-                    '(0 8 16 24)))
-          h))
+  (mapcat #(u/int->bytes % :big) h))
 
 
-(defn hash
-  "SHA1 Hashing function"
+(defn sha1
+  "SHA1 hash function"
   ([msg]
    (-> msg
        pre-process

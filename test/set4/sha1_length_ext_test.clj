@@ -11,13 +11,13 @@
 
 (defn get-auth-msg-hash
   [msg]
-  (sha1/hash (concat secret-key msg)))
+  (sha1/sha1 (concat secret-key msg)))
 
 
 (defn validate
   "Validate message using SHA1 hash"
   [msg msg-hash]
-  (= (sha1/hash (concat secret-key msg))
+  (= (sha1/sha1 (concat secret-key msg))
      msg-hash))
 
 
