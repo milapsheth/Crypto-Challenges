@@ -32,7 +32,7 @@
   (def len (quot (count data) 10))
   (loop [key-sizes (range 2 (min (inc MAX-KEY-LEN) len))
          best-key '()
-         best-distance u/MAX-INT]
+         best-distance u/MAX-NUM]
     (if (or (empty? key-sizes) (> (first key-sizes) len))
       best-key
       (let [key-size (first key-sizes)
@@ -50,7 +50,7 @@
     (if (empty? keys)
       (second (reduce #(let [text-score (x/score-match %2)]
                          (if (< text-score (%1 0)) [text-score %2] %))
-                      [u/MAX-INT nil] acc))
+                      [u/MAX-NUM nil] acc))
       (let [[key-len cipher-score] (first keys)]
         (recur (rest keys)
                (cons (apply u/interleave' (map #(x/decrypt-caesar

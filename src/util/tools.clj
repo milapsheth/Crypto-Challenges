@@ -92,7 +92,31 @@
    (reduce #(+ (<< %1 8) %2) 0 (if (= endianess :big) bytes (reverse bytes)))))
 
 
-(def MAX-INT (bit-shift-left 1 48))
+(defn bytes->number
+  "Decode byte array into bigint"
+  ([num] (bytes->number num :little))
+  ([num endianess]
+
+   (reduce #(+ (*' %1 256) %2)
+           0
+           (if (= endianess :big)
+             (reverse num)
+             num))))
+
+(defn number->bytes
+  "Encode a number as byte array"
+  ([num] (number->bytes num :little))
+  ([num endianess]
+
+   (loop [x num
+          acc (if (= endianess :big) '() [])]
+     (if (zero? x)
+       acc
+       (recur (quot x 256)
+              (conj acc (int (rem x 256))))))))
+
+
+(def MAX-NUM 0xFFFFFFFF)
 
 (defn hexstr->str
   [data]
@@ -226,3 +250,19 @@
       acc
       (recur (reducer val)
              (f acc (taker val))))))
+
+;; Timing tools
+(defn get-runtime
+  "Time function execution and return result
+  and time (in microseconds)"
+  [f & args]
+  (let [start-time (System/nanoTime)]
+    (let [result (apply f args)]
+      (let [stop-time (System/nanoTime)]
+        [result (quot (- stop-time start-time) 1000)]))))
+
+
+;; Exception handler
+(defn raise
+  [& args]
+  (throw (Exception. (apply str args))))

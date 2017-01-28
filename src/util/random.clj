@@ -23,7 +23,7 @@
   [n]
   (long (rand n)))
 
-(defn num
+(defn rand-num
   ([] (rand-int Integer/MAX_VALUE))
   ([n] (rand-int n))
   ([a b] (+ a (rand-int (- b a)))))

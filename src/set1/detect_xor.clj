@@ -13,7 +13,7 @@
   "Detect encrypted file"
   [ciphertexts]
   (loop [lines ciphertexts
-         score MAX-INT
+         score MAX-NUM
          match []
          decrypted-match '()]
     (if (empty? lines)

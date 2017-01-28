@@ -58,7 +58,7 @@
   "Brute force through all rotations and output the one with best score"
   [data]
 
-  (loop [score MAX-INT
+  (loop [score MAX-NUM
          matched-data data
          nums (range 256)]
 
@@ -80,7 +80,7 @@
 
   (let [max-char (key (apply max-key val char-count))]
     (loop [freq-lst (take 10 char-freq)
-           best-score MAX-INT
+           best-score MAX-NUM
            best-match data]
 
       (if (empty? freq-lst)
