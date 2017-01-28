@@ -38,7 +38,7 @@ Run `lein parallel-test` to run all challenges.
 * Set 4
    - [x] [Break "random access read/write" AES CTR](test/set4/break_edit_ctr.clj)
    - [x] [CTR bitflipping](test/set4/break_ctr_bitflip.clj)
-   - [ ] Recover the key from CBC with IV=Key
+   - [x] [Recover the key from CBC with IV=Key](test/set4/cbc_key_recovery_test.clj)
    - [x] [Implement a SHA-1 keyed MAC](test/set4/sha1_test.clj)
    - [x] [Break a SHA-1 keyed MAC using length extension](test/set4/sha1_length_ext_test.clj)
    - [ ] Break an MD4 keyed MAC using length extension
