@@ -207,7 +207,7 @@
         (recur (rest lst) (apply f acc (first lst)))))))
 
 (defn partition'
-  "Translates to (partition block-size block-size lst)"
+  "Translates to (partition block-size block-size nil lst)"
   [block-size lst]
   (partition block-size block-size nil lst))
 
@@ -265,4 +265,4 @@
 ;; Exception handler
 (defn raise
   [& args]
-  (throw (Exception. (apply str args))))
+  (throw (util.CryptoException. (apply str args))))

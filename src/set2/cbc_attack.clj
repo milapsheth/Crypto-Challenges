@@ -1,46 +1,58 @@
 (ns set2.cbc-attack
-  (:require [clojure.string :as str]
-            [set2
+  (:require [set2
              [aes-oracle :as oracle]
-             [break-ecb-harder :as break-ecb]
-             [break-ecb-simple :refer [find-block-size find-suffix-len]]]
+             [break-ecb-simple :refer [find-block-size]]]
             [util
-             [aes :as aes]
              [random :as rand]
              [tools :as u]]))
 
-(def random-cipher-key (rand/byte-lst 16))
 
-(def random-iv (rand/byte-lst 16))
-
-
-(defn encrypt-cookie
-  [userdata]
-  (when (some #(or (= \; %) (= \= %)) userdata)
-    (throw (Exception. "Invalid userdata. Should not contain ; or =")))
-  
-  (aes/encrypt (map int (concat "comment1=cooking%20MCs;userdata="
-                                userdata
-                                ";comment2=%20like%20a%20pound%20of%20bacon"))
-               random-cipher-key
-               :cbc random-iv))
-
-
-(defn decrypt-cookie
-  [ciphertext]
-  (u/bytes->str (aes/decrypt ciphertext random-cipher-key :cbc random-iv)))
-
-
-(defn parse-cookie
-  [cookie]
-  (reduce #(conj %1 (str/split %2 #"=")) {}
-          (filter #(not= % "") (str/split cookie #";"))))
+(defn get-first-unequal-block-index
+  "Get the index of the first block that is unequal"
+  [bytes1 bytes2 block-size]
+  (loop [[block1 & rst1] (u/partition' block-size bytes1)
+         [block2 & rst2] (u/partition' block-size bytes2)
+         i 0]
+    (cond
+      (= block1 block2) (if (or (nil? rst1)
+                                (nil? rst2))
+                          (u/raise "Both byte arrays are same: "
+                                   bytes1 "\n" bytes2)
+                          (recur rst1 rst2 (inc i)))
+      :else i)))
 
 
 (defn find-prefix-len
   "Find length of prefix attached to ciphertext"
   [block-size oracle]
-  (count "comment1=cooking%20MCs;userdata="))
+  (let [unequal-index (get-first-unequal-block-index (oracle [])
+                                                     (oracle [65])
+                                                     block-size)]
+    (loop [i 1]
+      (if (> i block-size)
+        (u/raise "Could not find prefix length")
+
+        (let [index (get-first-unequal-block-index (oracle (repeat i 65))
+                                                   (oracle (repeat (inc i) 65))
+                                                   block-size)]
+          (cond (= index unequal-index) (recur (inc i))
+                :else (- (* index block-size) i)))))))  
+  
+
+(defn find-prefix-suffix-len
+  "Find the total length of prefix and suffix
+  during encryption"
+  [block-size oracle]
+  (let [encrypted-prefix-len (count (oracle []))]
+    (loop [i 1]
+      (if (> i block-size)
+        (u/raise "Could not find prefix length")
+
+        (let [encrypted-plaintext-len (count (oracle (repeat i 0)))]
+
+          (cond
+            (> encrypted-plaintext-len encrypted-prefix-len) (- encrypted-prefix-len i)
+            :else (recur (inc i))))))))
 
 
 (defn create-malicious-ciphertext
@@ -88,8 +100,8 @@
     (when-not (= :cbc (oracle/detect-mode ciphertext))
       (throw (Exception. "Encryption mode is not CBC"))))
   
-  (let [prefix-length (find-prefix-len oracle block-size)
-        suffix-length (- (find-suffix-len block-size oracle) prefix-length)
+  (let [prefix-length (find-prefix-len block-size oracle)
+        suffix-length (- (find-prefix-suffix-len block-size oracle) prefix-length)
         cipher-block-num (* block-size (quot prefix-length block-size))]
 
     (let [prefix-padding (repeat (- block-size (rem prefix-length block-size)) 65)

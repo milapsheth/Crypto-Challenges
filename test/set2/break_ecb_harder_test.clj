@@ -8,7 +8,7 @@
 
 (def random-cipher-key (rand/byte-lst 16))
 
-(def random-prefix (rand/byte-lst (rand-int 32)))
+(def random-prefix (rand/byte-lst (rand/rand-num 32)))
 
 
 (defn oracle-encrypt
