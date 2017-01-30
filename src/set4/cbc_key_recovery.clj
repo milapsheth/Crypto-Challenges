@@ -2,7 +2,8 @@
   (:require [set2.break-ecb-simple :as ecb]
             [util.random :as rand]
             [util.tools :as u]
-            [set2.cbc-attack :as cbc-attack]))
+            [set2.cbc-attack :as cbc-attack]
+            util.CryptoException))
 
 
 (defn create-malicious-ciphertext

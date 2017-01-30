@@ -1,5 +1,6 @@
 (ns util.tools
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            util.CryptoException))
 
 
 ;; Bit-shift shorthands
