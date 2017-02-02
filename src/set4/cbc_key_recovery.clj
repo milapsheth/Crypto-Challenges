@@ -2,8 +2,7 @@
   (:require [set2.break-ecb-simple :as ecb]
             [util.random :as rand]
             [util.tools :as u]
-            [set2.cbc-attack :as cbc-attack]
-            util.CryptoException))
+            [set2.cbc-attack :as cbc-attack]))
 
 
 (defn create-malicious-ciphertext
@@ -45,7 +44,7 @@
             ;; (when-not (= "Invalid padding" (.getMessage e))
      #_         (throw e)))
 
-    (catch util.CryptoException e
+    (catch Exception e
       (let [new-plaintext (u/str->bytes (.getMessage e))]
         ;; new-plaintext #_
         (u/xor (take block-size new-plaintext)

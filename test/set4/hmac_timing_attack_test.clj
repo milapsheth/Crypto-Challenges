@@ -32,7 +32,7 @@
   [arr1 arr2]
   (cond
     (not= (first arr1) (first arr2)) false
-    :else (do (Thread/sleep 20)
+    :else (do (Thread/sleep 30)
               (recur (rest arr1) (rest arr2)))))
 
 

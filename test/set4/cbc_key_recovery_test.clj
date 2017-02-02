@@ -28,11 +28,12 @@
 
 
 (defn decrypt-cookie
-  [ciphertext]
-  (let [plaintext (aes/decrypt ciphertext random-cipher-key :cbc random-iv)]
-    (if (first (filter #(> % 127) plaintext))
-      (u/raise (u/bytes->str plaintext))
-      plaintext)))
+  ([ciphertext cipher-key]
+   (let [plaintext (aes/decrypt ciphertext cipher-key :cbc random-iv)]
+     (if (first (filter #(> % 127) plaintext))
+       (u/raise (u/bytes->str plaintext))
+       plaintext)))
+  ([ciphertext] (decrypt-cookie ciphertext random-cipher-key)))
 
 
 (defn parse-cookie

@@ -1,6 +1,5 @@
 (ns util.tools
-  (:require [clojure.string :as str]
-            util.CryptoException))
+  (:require [clojure.string :as str]))
 
 
 ;; Bit-shift shorthands
@@ -266,4 +265,4 @@
 ;; Exception handler
 (defn raise
   [& args]
-  (throw (util.CryptoException. (apply str args))))
+  (throw (Exception. (str (apply str args)))))
