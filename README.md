@@ -47,7 +47,7 @@ Run `lein parallel-test` to run all challenges.
 * Set 5
    - [x] [Implement Diffie-Hellman](test/set5/dh_test.clj)
    - [x] [Implement a MITM key-fixing attack on Diffie-Hellman with parameter injection](test/set5/dh_mitm_attack_test.clj)
-   - [ ] Implement DH with negotiated groups, and break with malicious "g" parameters
+   - [x] [Implement DH with negotiated groups, and break with malicious "g" parameters](test/set5/dh_negotiated_groups_test.clj)
    - [ ] Implement Secure Remote Password (SRP)
    - [ ] Break SRP with a zero key
    - [ ] Offline dictionary attack on simplified SRP

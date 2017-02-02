@@ -29,11 +29,11 @@
      (:aes-key @bob)))
 
 
-(deftest dh-mitm-attack-normal-test
+(deftest normal-message-test
   (testing "Failed normal message communication"
     (let [alice (sut/create-peer)
           bob (sut/create-peer)]
-      (dotimes [n 4]
+      (dotimes [n 2]
         (is (test-establish-keys (if (even? n) alice bob)
                                  (if (even? n) bob alice)))
         (dotimes [n 4]
@@ -59,7 +59,7 @@
             msg-to-send))))
 
 
-(deftest dh-mitm-attack-normal-test-actual
+(deftest dh-mitm-attack-test
   (testing "Failed to break communication"
     (let [alice (sut/create-peer)
           bob (sut/create-peer)]

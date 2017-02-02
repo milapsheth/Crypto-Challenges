@@ -26,20 +26,25 @@
 
 
 (defn register-aes-key
-  "Process registration request and response"
+  "Process registration request and response
+  Registration request: create symmetric AES key from DH keypair
+  and send public key
+  Registration response: create symmetric AES key from obtained public key"
   ([peer msg]
    (cond
      (:reg-request msg) (let [[p g peer-public-key] (:reg-request msg)]
                           (create-public-key peer p g)
                           (register-aes-key peer p peer-public-key)
                           {:reg-response (:public-key @peer),
-                           :id (:id @peer)})
+                           :id (:id @peer), :remote-id (:id msg)})
      (:reg-response msg) (do (register-aes-key peer (:p @peer) (:reg-response msg))
-                             {})))
+                             nil)
+     :else (u/raise "Invalid message")))
   
   ([peer p peer-public-key]
    (swap! peer (fn [{private-key :private-key :as mp}]
                  (assoc mp
+                        :remote-public-key peer-public-key
                         :aes-key (->> (math/pow peer-public-key private-key p)
                                       u/number->bytes
                                       sha1/sha1
@@ -55,17 +60,16 @@
 
 
 (defn create-reg-request
-  [peer remote-peer p g]
-  (swap! peer assoc :p p :g g
-         :public-key (math/pow g (:private-key @peer) p))
+  [peer remote-id p g]
+  (create-public-key peer p g)
   {:reg-request [p, g, (:public-key @peer)],
-   :id (:id @peer)})
+   :id (:id @peer), :remote-id remote-id})
 
 
 (defn establish-keys
   [peer1 peer2 p g]
   (->> ;; Create registration request
-   (create-reg-request peer1 peer2 p g)
+   (create-reg-request peer1 (:id @peer2) p g)
    transport-msg
    (register-aes-key peer2)
    transport-msg
@@ -73,11 +77,13 @@
 
 
 (defn encrypt-msg
-  [peer msg]
+  [peer remote-id msg]
   (let [msg-to-send (aes/encrypt msg (:aes-key @peer) :cbc)]
     (swap! peer assoc :msg msg)
     {:msg msg-to-send,
-     :id (:id @peer)}))
+     :id (:id @peer),
+     :remote-id remote-id}))
+
 
 (defn decrypt-msg
   [peer {cipher :msg id :id}]
@@ -88,11 +94,12 @@
 
 (defn send-msg
   [sender receiver msg]
-  (->> (encrypt-msg sender msg)
+  (->> (encrypt-msg sender (:id @receiver) msg)
        transport-msg
        (decrypt-msg receiver)))
 
-
+;; Structure
+;; {id => {p, g, msg, aes-key}}
 (def listener (atom nil))
 
 
@@ -111,15 +118,14 @@
            :aes-key (->> (u/number->bytes 0) ;; AES Key after modification
                          sha1/sha1
                          (take 16)))
-    ;; (reset! channel #(modify-msg listener %1 %2))
     {:reg-response (:p @listener) :id id}))
 
 (defn modify-reg-request
   [listener {[p g A] :reg-request, id :id}]
-  (swap! listener assoc :p p :g g
-         [:public-key id] A)
-  ;; (reset! channel modify-reg-response)
-  {:reg-request [p g p], :id id})
+  (let [malicious-g (or (:g @listener) g)]
+    (swap! listener assoc :p p :g malicious-g
+           [:public-key id] A)
+    {:reg-request [p malicious-g p], :id id}))
 
 
 (defn msg-listener
@@ -137,7 +143,7 @@
   ([]
    (reset! listener @(create-peer))
    (reset! channel msg-listener))
-  ([msg] (swap! listener assoc :msg msg)))
+  ([msg & args] (apply swap! listener assoc :msg msg args)))
 
 (defn dh-get-listener
   []
